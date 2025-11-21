@@ -13,4 +13,24 @@ public class Contexto : DbContext
     public DbSet<Turnos> turnos { get; set; }
     public DbSet<DetallePreFactura> detallePreFactura { get; set; }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Materiales>(entity =>
+        {
+            entity.HasData(
+                new Materiales
+                {
+                    IdMaterial = 1,
+                    Nombre = "Papel",
+                    PrecioUnitario = 5,
+                    Existencia = 100
+                }
+            );
+        });
+
+
+    }
+
 }
