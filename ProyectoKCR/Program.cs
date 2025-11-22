@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProyectoKCR.Components;
 using ProyectoKCR.DAL;
+using ProyectoKCR.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddRazorComponents()
 var ConStr = builder.Configuration.GetConnectionString("ConStr");
 builder.Services.AddDbContextFactory<Contexto>(options => options.UseSqlite(ConStr));
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddScoped<ClienteService>();
 
 var app = builder.Build();
 

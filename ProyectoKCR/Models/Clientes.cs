@@ -8,9 +8,9 @@ public class Clientes
     public int IdCliente { get; set; }
     [Required, MaxLength(255)]
     public string Nombre { get; set; }
-    [MaxLength(20)]
-    public string Cedula { get; set; }
-    [MaxLength(20)]
+    [MaxLength(11)]
+    public string? Cedula { get; set; }
+    [MaxLength(10)]
     public string Telefono { get; set; }
     public DateTime Fecha { get; set; } 
 

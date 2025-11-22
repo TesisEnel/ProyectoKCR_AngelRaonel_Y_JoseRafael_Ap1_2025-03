@@ -3,6 +3,7 @@
 @using System.Threading
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
+@inject ClienteService clienteservice
 
 <div class="client-grid">
 
@@ -51,6 +52,7 @@
     private string cedula { get; set; } = string.Empty;
     private string telefono { get; set; } = string.Empty;
     private int currentImageIndex = 0;
+    private Clientes cliente = new Clientes();
 
     // CLAVE: Para detener el bucle infinito cuando el usuario cambia de página
     private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -127,6 +129,11 @@
 
         // 3. Preparamos el nombre para enviarlo en la URL (maneja espacios y tildes)
         var nombreCodificado = Uri.EscapeDataString(nombre);
+        cliente.Nombre = nombre;
+        cliente.Cedula = cedula;
+        cliente.Telefono = telefono;
+        cliente.Fecha = DateTime.UtcNow;
+        clienteservice.Guardar(cliente);
 
         // 4. Navegamos a la siguiente página pasando el nombre como "Query String"
         navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCodificado}");
