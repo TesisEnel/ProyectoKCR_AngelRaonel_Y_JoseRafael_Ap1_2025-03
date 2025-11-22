@@ -15,5 +15,5 @@ public class Materiales
     [Required]
     public decimal PrecioUnitario { get; set; }
 
-    public ICollection<DetallePreFactura> DetallesPreFactura { get; set; } = new List<DetallePreFactura>();
+    public ICollection<Servicios> servicios { get; set; } = new List<Servicios>();
 }

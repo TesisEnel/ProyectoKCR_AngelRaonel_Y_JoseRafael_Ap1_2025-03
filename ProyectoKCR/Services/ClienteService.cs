@@ -24,7 +24,7 @@ public class ClienteService(IDbContextFactory<Contexto> DbFactory)
     public async Task<bool> Modificar(Clientes cliente)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        contexto.Update(cliente);
+        contexto.clientes.Update(cliente);
         return await contexto.SaveChangesAsync() > 0;
     }
 

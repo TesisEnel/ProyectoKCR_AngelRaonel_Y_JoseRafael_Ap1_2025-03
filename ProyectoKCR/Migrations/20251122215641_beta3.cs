@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProyectoKCR.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicial : Migration
+    public partial class beta3 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -111,6 +111,28 @@ namespace ProyectoKCR.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "servicios",
+                columns: table => new
+                {
+                    IdServicios = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TipoServicio = table.Column<string>(type: "TEXT", nullable: false),
+                    NombreServicio = table.Column<string>(type: "TEXT", nullable: false),
+                    PrecioServicio = table.Column<decimal>(type: "TEXT", nullable: false),
+                    IdMaterial = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_servicios", x => x.IdServicios);
+                    table.ForeignKey(
+                        name: "FK_servicios_materiales_IdMaterial",
+                        column: x => x.IdMaterial,
+                        principalTable: "materiales",
+                        principalColumn: "IdMaterial",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "detallePreFactura",
                 columns: table => new
                 {
@@ -120,7 +142,8 @@ namespace ProyectoKCR.Migrations
                     Cantidad = table.Column<int>(type: "INTEGER", nullable: false),
                     PrecioUnitarioHistorico = table.Column<decimal>(type: "TEXT", nullable: false),
                     IdMaterial = table.Column<int>(type: "INTEGER", nullable: false),
-                    IdPreFactura = table.Column<int>(type: "INTEGER", nullable: false)
+                    IdPreFactura = table.Column<int>(type: "INTEGER", nullable: false),
+                    ServiciosIdServicios = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -137,6 +160,11 @@ namespace ProyectoKCR.Migrations
                         principalTable: "preFacturas",
                         principalColumn: "IdPreFactura",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_detallePreFactura_servicios_ServiciosIdServicios",
+                        column: x => x.ServiciosIdServicios,
+                        principalTable: "servicios",
+                        principalColumn: "IdServicios");
                 });
 
             migrationBuilder.InsertData(
@@ -155,6 +183,11 @@ namespace ProyectoKCR.Migrations
                 column: "IdPreFactura");
 
             migrationBuilder.CreateIndex(
+                name: "IX_detallePreFactura_ServiciosIdServicios",
+                table: "detallePreFactura",
+                column: "ServiciosIdServicios");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_preFacturas_IdCliente",
                 table: "preFacturas",
                 column: "IdCliente");
@@ -163,6 +196,11 @@ namespace ProyectoKCR.Migrations
                 name: "IX_preFacturas_IdEmpleado",
                 table: "preFacturas",
                 column: "IdEmpleado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_servicios_IdMaterial",
+                table: "servicios",
+                column: "IdMaterial");
 
             migrationBuilder.CreateIndex(
                 name: "IX_turnos_IdCliente",
@@ -180,16 +218,19 @@ namespace ProyectoKCR.Migrations
                 name: "turnos");
 
             migrationBuilder.DropTable(
-                name: "materiales");
+                name: "preFacturas");
 
             migrationBuilder.DropTable(
-                name: "preFacturas");
+                name: "servicios");
 
             migrationBuilder.DropTable(
                 name: "clientes");
 
             migrationBuilder.DropTable(
                 name: "empleados");
+
+            migrationBuilder.DropTable(
+                name: "materiales");
         }
     }
 }

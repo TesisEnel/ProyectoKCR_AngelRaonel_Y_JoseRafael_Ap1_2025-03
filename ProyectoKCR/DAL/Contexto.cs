@@ -12,6 +12,7 @@ public class Contexto : DbContext
     public DbSet<PreFacturas> preFacturas { get; set; }
     public DbSet<Turnos> turnos { get; set; }
     public DbSet<DetallePreFactura> detallePreFactura { get; set; }
+    public DbSet<Servicios> servicios { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,7 @@ public class Contexto : DbContext
             );
         });
 
+      
 
     }
 

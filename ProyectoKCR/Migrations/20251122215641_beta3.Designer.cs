@@ -11,8 +11,8 @@ using ProyectoKCR.DAL;
 namespace ProyectoKCR.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20251122002242_Inicial")]
-    partial class Inicial
+    [Migration("20251122215641_beta3")]
+    partial class beta3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,11 +71,16 @@ namespace ProyectoKCR.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ServiciosIdServicios")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("IdDetalle");
 
                     b.HasIndex("IdMaterial");
 
                     b.HasIndex("IdPreFactura");
+
+                    b.HasIndex("ServiciosIdServicios");
 
                     b.ToTable("detallePreFactura");
                 });
@@ -180,6 +185,33 @@ namespace ProyectoKCR.Migrations
                     b.ToTable("preFacturas");
                 });
 
+            modelBuilder.Entity("ProyectoKCR.Models.Servicios", b =>
+                {
+                    b.Property<int>("IdServicios")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IdMaterial")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreServicio")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("PrecioServicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TipoServicio")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("IdServicios");
+
+                    b.HasIndex("IdMaterial");
+
+                    b.ToTable("servicios");
+                });
+
             modelBuilder.Entity("ProyectoKCR.Models.Turnos", b =>
                 {
                     b.Property<int>("IdTurno")
@@ -211,7 +243,7 @@ namespace ProyectoKCR.Migrations
             modelBuilder.Entity("ProyectoKCR.Models.DetallePreFactura", b =>
                 {
                     b.HasOne("ProyectoKCR.Models.Materiales", "Material")
-                        .WithMany("DetallesPreFactura")
+                        .WithMany()
                         .HasForeignKey("IdMaterial")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -221,6 +253,10 @@ namespace ProyectoKCR.Migrations
                         .HasForeignKey("IdPreFactura")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("ProyectoKCR.Models.Servicios", null)
+                        .WithMany("DetallesPreFactura")
+                        .HasForeignKey("ServiciosIdServicios");
 
                     b.Navigation("Material");
 
@@ -244,6 +280,17 @@ namespace ProyectoKCR.Migrations
                     b.Navigation("Cliente");
 
                     b.Navigation("Empleado");
+                });
+
+            modelBuilder.Entity("ProyectoKCR.Models.Servicios", b =>
+                {
+                    b.HasOne("ProyectoKCR.Models.Materiales", "Material")
+                        .WithMany("servicios")
+                        .HasForeignKey("IdMaterial")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("ProyectoKCR.Models.Turnos", b =>
@@ -271,12 +318,17 @@ namespace ProyectoKCR.Migrations
 
             modelBuilder.Entity("ProyectoKCR.Models.Materiales", b =>
                 {
-                    b.Navigation("DetallesPreFactura");
+                    b.Navigation("servicios");
                 });
 
             modelBuilder.Entity("ProyectoKCR.Models.PreFacturas", b =>
                 {
                     b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("ProyectoKCR.Models.Servicios", b =>
+                {
+                    b.Navigation("DetallesPreFactura");
                 });
 #pragma warning restore 612, 618
         }
