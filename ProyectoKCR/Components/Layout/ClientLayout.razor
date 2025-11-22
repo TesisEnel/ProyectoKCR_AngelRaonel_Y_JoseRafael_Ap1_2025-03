@@ -1,4 +1,4 @@
-﻿@using System.Timers
+﻿
 @inherits LayoutComponentBase
 @implements IDisposable
 
@@ -34,9 +34,13 @@
     // Usamos CancellationTokenSource para detener el bucle cuando el componente se destruye
     private CancellationTokenSource _clockCts = new CancellationTokenSource();
 
-    protected override async Task OnInitializedAsync()
+    protected override  Task OnInitializedAsync()
     {
-        await StartClockLoop();
+        _ = StartClockLoop();
+
+        // 2. Devolvemos Task.CompletedTask para que Blazor sepa que el componente
+        // puede continuar con el renderizado de la UI.
+        return Task.CompletedTask;
     }
 
     private async Task StartClockLoop()
