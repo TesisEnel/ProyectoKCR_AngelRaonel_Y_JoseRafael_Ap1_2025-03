@@ -54,7 +54,6 @@
 
                 <div class="modal-body">
                     <h4 class="subtitulo-servicios">SERVICIOS:</h4>
-
                     <div class="watermark-bg">
                         <img src="/Img-Vector/logoKCR.png" alt="" />
                     </div>
@@ -62,24 +61,65 @@
                     <div class="grid-botones">
                         @if (mostrarModalExpres)
                         {
-                            <button class="btn-grid">COPIA</button>
-                            <button class="btn-grid">IMPRESIONES</button>
-                            <button class="btn-grid">ENCUADERNADO</button>
-                            <button class="btn-grid">ESCANER</button>
-                            <button class="btn-grid">SERVICIOS MULTIPLES</button>
-                            <button class="btn-grid">IMPRESION PLANOS PDF</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("COPIA")'>COPIA</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("IMPRESIONES")'>IMPRESIONES</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("ENCUADERNADO")'>ENCUADERNADO</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("ESCANER")'>ESCANER</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS PDF")'>IMPRESION PLANOS PDF</button>
                         }
                         else
                         {
-                            <button class="btn-grid">EDICION DE DISEÑO</button>
-                            <button class="btn-grid">DISEÑO SUBLIMACION</button>
-                            <button class="btn-grid">TARJETAS DE PRESENTACION</button>
-                            <button class="btn-grid">FLYERS/MONTADO</button>
-                            <button class="btn-grid">SERVICIOS MULTIPLES</button>
-                            <button class="btn-grid">PLANOS AUTOCAD</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("EDICION DE DISEÑO")'>EDICION DE DISEÑO</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("DISEÑO SUBLIMACION")'>DISEÑO SUBLIMACION</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("TARJETAS")'>TARJETAS DE PRESENTACION</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("FLYERS")'>FLYERS/MONTADO</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
+                            <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS AUTOCAD")'>PLANOS AUTOCAD</button>
                         }
                     </div>
                 </div>
+            </div>
+        </div>
+    }
+    @if (mostrarTicket)
+    {
+        <div class="modal-backdrop" @onclick="CerrarModal">
+            <div class="modal-ticket" @onclick:stopPropagation>
+
+                <div class="ticket-logo">
+                    <img src="/Img-Vector/LogoFactura.png" alt="KCR Print Center" />
+                </div>
+
+                <div class="ticket-info-group">
+                    <label>NOMBRE</label>
+                    <span class="dato-destacado">@NombreParaMostrar.ToUpper()</span>
+                </div>
+
+                <div class="ticket-info-group">
+                    <label>AREA</label>
+                    <span class="dato-normal">@areaSeleccionada</span>
+                </div>
+
+                <div class="ticket-info-group">
+                    <label>SERVICIO</label>
+                    <span class="dato-destacado">@servicioSeleccionado</span>
+                </div>
+
+                <div class="ticket-info-group">
+                    <label>TURNO NO.</label>
+                    <span class="dato-turno">@codigoTurno</span>
+                </div>
+
+                <div class="ticket-info-group">
+                    <label>TELEFONO</label>
+                    <span class="dato-destacado">@TelefonoParaMostrar</span>
+                </div>
+
+                <button class="btn-generar-ticket" @onclick="GenerarTicketFinal">
+                    GENERAR TICKET
+                </button>
+
             </div>
         </div>
     }
@@ -87,24 +127,77 @@
 </div>
 
 @code {
+    // 1. CAPTURA DE DATOS DE LA URL
     [SupplyParameterFromQuery(Name = "nombreCliente")]
     public string? NombreRecibido { get; set; }
-    public string NombreParaMostrar => string.IsNullOrEmpty(NombreRecibido) ? "Cliente" : NombreRecibido;
 
-    // --- LÓGICA DE MODALES ---
+    [SupplyParameterFromQuery(Name = "telefono")]
+    public string? TelefonoRecibido { get; set; }
+
+    // Propiedades para mostrar (con valores por defecto si vienen vacíos)
+    public string NombreParaMostrar => string.IsNullOrEmpty(NombreRecibido) ? "Cliente" : NombreRecibido;
+    public string TelefonoParaMostrar => string.IsNullOrEmpty(TelefonoRecibido) ? "---" : TelefonoRecibido;
+
+    // 2. VARIABLES DE ESTADO
     private bool mostrarModalExpres = false;
     private bool mostrarModalDiseno = false;
+    private bool mostrarTicket = false; // Nuevo estado para el ticket final
+
+    // Datos para el Ticket
+    private string areaSeleccionada = "";
+    private string servicioSeleccionado = "";
+    private string codigoTurno = "";
+
+    // 3. MÉTODOS
 
     private void AbrirModal(bool esExpres)
     {
-        if (esExpres) mostrarModalExpres = true;
-        else mostrarModalDiseno = true;
+        if (esExpres)
+        {
+            mostrarModalExpres = true;
+            areaSeleccionada = "SERVICIO EXPRESS";
+        }
+        else
+        {
+            mostrarModalDiseno = true;
+            areaSeleccionada = "DISEÑO Y EDICIÓN";
+        }
     }
 
     private void CerrarModal()
     {
         mostrarModalExpres = false;
         mostrarModalDiseno = false;
+        mostrarTicket = false;
+    }
+
+    // Este método se llama cuando el usuario elige "COPIA", "IMPRESIONES", etc.
+    private void ElegirServicio(string servicio)
+    {
+        servicioSeleccionado = servicio;
+
+        // Generamos un código ficticio basado en el área y el servicio
+        // Ej: SE (Servicio Express) - C (Copia) - 01 (Random)
+        string prefijoArea = areaSeleccionada == "SERVICIO EXPRESS" ? "SE" : "DE";
+        string prefijoServicio = servicio.Substring(0, 1);
+        int numeroRandom = new Random().Next(1, 99);
+
+        codigoTurno = $"{prefijoArea}-{prefijoServicio}-{numeroRandom:D2}";
+
+        // Cerramos los menús y mostramos el ticket
+        mostrarModalExpres = false;
+        mostrarModalDiseno = false;
+        mostrarTicket = true;
+    }
+
+    private void GenerarTicketFinal()
+    {
+        // AQUÍ VA LA LÓGICA DE IMPRESIÓN O GUARDADO EN BASE DE DATOS
+        // Por ahora, simulamos que termina y vuelve al inicio o imprime
+        Console.WriteLine($"Imprimiendo ticket {codigoTurno} para {NombreParaMostrar}");
+
+        // Opcional: Volver al inicio
+        // navigationManager.NavigateTo("/");
     }
 
     private void IrAtras()

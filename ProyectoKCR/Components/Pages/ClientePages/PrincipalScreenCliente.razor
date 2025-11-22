@@ -1,6 +1,8 @@
 ﻿@page "/cliente"
 @layout ClientLayout
 @using System.Threading
+@using ProyectoKCR.Models
+@using ProyectoKCR.Services
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 @inject ClienteService clienteservice
@@ -136,7 +138,12 @@
         clienteservice.Guardar(cliente);
 
         // 4. Navegamos a la siguiente página pasando el nombre como "Query String"
-        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCodificado}");
+        // Codificamos ambos datos
+        var nombreCod = Uri.EscapeDataString(nombre);
+        var telCod = Uri.EscapeDataString(telefono);
+
+        // Pasamos ambos parámetros
+        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCod}&telefono={telCod}");
 
         // Nota: No limpiamos el formulario aquí inmediatamente si queremos volver atrás y ver los datos,
         // pero si prefieres limpiarlo, deja tu línea:
