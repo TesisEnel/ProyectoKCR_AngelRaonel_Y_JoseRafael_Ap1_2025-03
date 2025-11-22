@@ -145,3 +145,34 @@
     color: white;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+/* --- VECTORES (Posicionamiento Absoluto) --- */
+.vector-decor {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none; /* Para que no interfieran con los clicks */
+}
+
+.top-left {
+    top: 5%;
+    left: 5%;
+    width: 60px;
+}
+
+.top-right {
+    top: 5%;
+    right: 5%;
+    width: 70px;
+}
+
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    opacity: 0.3;
+}
+
+.bottom-right {
+    bottom: 5%;
+    right: 5%;
+    width: 90px;
+}

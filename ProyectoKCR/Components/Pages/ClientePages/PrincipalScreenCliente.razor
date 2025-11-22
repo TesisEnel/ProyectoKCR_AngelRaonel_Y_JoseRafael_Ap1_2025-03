@@ -1,6 +1,8 @@
 ﻿@page "/cliente"
 @layout ClientLayout
 @using System.Threading
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
 <div class="client-grid">
 
@@ -111,15 +113,26 @@
         telefono = "";
         StateHasChanged();
     }
-
-    private void ProcesarTurno()
+    private async Task ProcesarTurno()
     {
+        // 1. Validación simple
         if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
         {
-            // Lógica de validación aquí
+            // Aquí podrías poner una alerta o mensaje de error
             return;
         }
-        // Lógica de turno y limpieza
+
+        // 2. Simulación de proceso (opcional, si quieres mantener el delay)
+        await Task.Delay(1000);
+
+        // 3. Preparamos el nombre para enviarlo en la URL (maneja espacios y tildes)
+        var nombreCodificado = Uri.EscapeDataString(nombre);
+
+        // 4. Navegamos a la siguiente página pasando el nombre como "Query String"
+        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCodificado}");
+
+        // Nota: No limpiamos el formulario aquí inmediatamente si queremos volver atrás y ver los datos,
+        // pero si prefieres limpiarlo, deja tu línea:
         LimpiarFormulario();
     }
 

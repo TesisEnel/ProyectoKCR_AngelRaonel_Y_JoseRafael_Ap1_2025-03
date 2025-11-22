@@ -1,6 +1,6 @@
-﻿
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @implements IDisposable
+
 
 <div class="kiosk-container">
     <header class="kiosk-header">
@@ -22,21 +22,21 @@
     </main>
 
     <div class="decorations">
-        <svg class="dec-shape top-left" viewBox="0 0 100 100"><path d="M35 20 h30 v25 h25 v30 h-25 v25 h-30 v-25 h-25 v-30 h25 z" fill="none" stroke="#C0C0C0" stroke-width="2" rx="5" /></svg>
-        <svg class="dec-shape top-right" viewBox="0 0 100 100"><path d="M35 20 h30 v25 h25 v30 h-25 v25 h-30 v-25 h-25 v-30 h25 z" fill="none" stroke="#F38B2A" stroke-width="3" rx="5" /></svg>
-        <svg class="dec-shape bottom-left" viewBox="0 0 200 200"><path d="M70 40 h60 v50 h50 v60 h-50 v50 h-60 v-50 h-50 v-60 h50 z" fill="none" stroke="#D3D3D3" stroke-width="4" rx="10" /></svg>
-        <svg class="dec-shape bottom-right" viewBox="0 0 100 100"><path d="M35 20 h30 v25 h25 v30 h-25 v25 h-30 v-25 h-25 v-30 h25 z" fill="#F38B2A" rx="5" /></svg>
+        <img src="/Img-Vector/Union.svg" class="vector-decor top-left" alt="" />
+        <img src="/Img-Vector/Union-1.svg" class="vector-decor top-right" alt="" />
+        <img src="/Img-Vector/Union-2.svg" class="vector-decor bottom-left" alt="" />
+        <img src="/Img-Vector/Union.svg" class="vector-decor bottom-right" alt="" />
     </div>
 </div>
 
 @code {
-    private string currentTime = DateTime.Now.ToString("HH:mm:ss");
+    private string currentTime = DateTime.Now.ToString("hh:mm:ss");
     // Usamos CancellationTokenSource para detener el bucle cuando el componente se destruye
     private CancellationTokenSource _clockCts = new CancellationTokenSource();
 
     protected override  Task OnInitializedAsync()
     {
-        _ = StartClockLoop();
+        StartClockLoop();
 
         // 2. Devolvemos Task.CompletedTask para que Blazor sepa que el componente
         // puede continuar con el renderizado de la UI.
@@ -61,7 +61,7 @@
             }
 
             // 2. Actualiza la hora y notifica a Blazor
-            currentTime = DateTime.Now.ToString("HH:mm:ss");
+            currentTime = DateTime.Now.ToString("hh:mm:ss");
             await InvokeAsync(StateHasChanged);
         }
     }

@@ -1,0 +1,161 @@
+﻿/* --- CONFIGURACIÓN DE FUENTE LATO LOCAL --- */
+/* Asegúrate de que estos archivos existan en wwwroot/fonts/ */
+@font-face {
+    font-family: 'Lato';
+    src: url('/fonts/Lato-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('/fonts/Lato-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* --- ESTILOS GENERALES --- */
+.servicio-container {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Ocupa el espacio del layout */
+    min-height: 80vh;
+    font-family: 'Lato', sans-serif;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* --- VECTORES (Posicionamiento Absoluto) --- */
+.vector-decor {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none; /* Para que no interfieran con los clicks */
+}
+
+.top-left {
+    top: 5%;
+    left: 5%;
+    width: 60px;
+}
+
+.top-right {
+    top: 5%;
+    right: 5%;
+    width: 70px;
+}
+
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    opacity: 0.3;
+}
+
+.bottom-right {
+    bottom: 5%;
+    right: 5%;
+    width: 90px;
+}
+
+/* --- CONTENIDO CENTRAL --- */
+.center-content {
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 450px; /* Ancho controlado para que se vea bien */
+}
+
+.cliente-nombre {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; /* Bold */
+    font-size: 2.8rem;
+    color: #9E9E9E; /* Gris claro tipo placeholder */
+    margin-bottom: 1rem;
+    text-transform: capitalize; /* Primera letra mayúscula */
+}
+
+.titulo-instruccion {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #666666;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+}
+
+.botones-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    margin-bottom: 3rem;
+}
+
+/* --- BOTONES --- */
+.btn-servicio {
+    padding: 1rem 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    border-radius: 50px; /* Bordes muy redondos */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    font-family: 'Lato', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+    .btn-servicio:active {
+        transform: scale(0.98);
+    }
+
+/* Exprés (Relleno) */
+.btn-express {
+    background-color: #F2994A;
+    color: white;
+    border: 3px solid #F2994A;
+    box-shadow: 0 4px 15px rgba(242, 153, 74, 0.4);
+}
+
+.icon-suffix {
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+}
+
+/* Diseño (Borde) */
+.btn-diseno {
+    background-color: white;
+    color: #F2994A;
+    border: 3px solid #F2994A;
+}
+
+    .btn-diseno:hover {
+        background-color: #FFF5EB;
+    }
+
+/* Volver */
+.btn-volver {
+    background: white;
+    color: #F2994A;
+    border: 2px solid #F2994A;
+    padding: 0.6rem 3.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+
+    .btn-volver:hover {
+        background-color: #FFF5EB;
+    }
