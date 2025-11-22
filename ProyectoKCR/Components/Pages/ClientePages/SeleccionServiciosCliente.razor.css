@@ -159,3 +159,311 @@
     .btn-volver:hover {
         background-color: #FFF5EB;
     }
+@font-face {
+    font-family: 'Lato';
+    src: url('/fonts/Lato/Lato-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Lato';
+    src: url('/fonts/Lato/Lato-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* --- ESTILOS GENERALES --- */
+.servicio-container {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Ocupa el espacio del layout */
+    min-height: 80vh;
+    font-family: 'Lato', sans-serif;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* --- VECTORES (Posicionamiento Absoluto) --- */
+.vector-decor {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none; /* Para que no interfieran con los clicks */
+}
+
+.top-left {
+    top: 5%;
+    left: 5%;
+    width: 60px;
+}
+
+.top-right {
+    top: 5%;
+    right: 5%;
+    width: 70px;
+}
+
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    opacity: 0.3;
+}
+
+.bottom-right {
+    bottom: 5%;
+    right: 5%;
+    width: 90px;
+}
+
+/* --- CONTENIDO CENTRAL --- */
+.center-content {
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 450px; /* Ancho controlado para que se vea bien */
+}
+
+
+
+.cliente-nombre {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; /* Bold */
+    font-size: 2.8rem;
+    color: #9E9E9E; /* Gris claro tipo placeholder */
+    margin-bottom: 1rem;
+    text-transform: capitalize; /* Primera letra mayúscula */
+}
+
+.titulo-instruccion {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #666666;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+}
+
+.botones-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    margin-bottom: 3rem;
+}
+
+/* --- BOTONES --- */
+.btn-servicio {
+    padding: 1rem 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    border-radius: 50px; /* Bordes muy redondos */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    font-family: 'Lato', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+    .btn-servicio:active {
+        transform: scale(0.98);
+    }
+
+/* Exprés (Relleno) */
+.btn-express {
+    background-color: #F2994A;
+    color: white;
+    border: 3px solid #F2994A;
+    box-shadow: 0 4px 15px rgba(242, 153, 74, 0.4);
+}
+
+.icon-suffix {
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+}
+
+/* Diseño (Borde) */
+.btn-diseno {
+    background-color: white;
+    color: #F2994A;
+    border: 3px solid #F2994A;
+}
+
+    .btn-diseno:hover {
+        background-color: #FFF5EB;
+    }
+
+/* Volver */
+.btn-volver {
+    background: white;
+    color: #F2994A;
+    border: 2px solid #F2994A;
+    padding: 0.6rem 3.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+
+    .btn-volver:hover {
+        background-color: #FFF5EB;
+    }
+
+
+/* Fondo oscuro transparente */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75); /* Un poco más oscuro para resaltar la ventana */
+    z-index: 2000; /* Muy alto para tapar todo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px); /* Opcional: desenfoca el fondo ligeramente */
+}
+
+/* La ventana flotante */
+.modal-window {
+    width: 95%;
+    max-width: 800px; /* Ancho similar a tu diseño */
+    background-color: white;
+    border-radius: 25px; /* Bordes bien redondeados */
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Lato', sans-serif; /* Aseguramos LATO aquí */
+}
+
+/* --- ENCABEZADO NARANJA --- */
+.modal-header {
+    background-color: #F2994A; /* Naranja KCR */
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    border-bottom: 2px solid #e08e43;
+}
+
+.header-title {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; /* O 900 si tienes la fuente Black */
+    font-size: 1.6rem;
+    text-transform: uppercase;
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* Botón X de cerrar */
+.btn-close-x {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+    .btn-close-x:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+/* --- CUERPO BLANCO --- */
+.modal-body {
+    padding: 25px 50px 50px 50px;
+    position: relative;
+    text-align: center;
+    min-height: 350px;
+    background-color: white;
+}
+
+.subtitulo-servicios {
+    font-family: 'Lato', sans-serif;
+    color: #666666;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Marca de agua (Logo de fondo) */
+.watermark-bg {
+    position: absolute;
+    top: 55%; /* Un poco más abajo del centro */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 0.15; /* Transparencia suave */
+    pointer-events: none;
+    width: 60%;
+}
+
+    .watermark-bg img {
+        width: 100%;
+        height: auto;
+    }
+
+/* --- GRID DE BOTONES (Estilo Píldora) --- */
+.grid-botones {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas exactas */
+    gap: 20px 40px; /* Espacio vertical 20px, horizontal 40px */
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.btn-grid {
+    background: white;
+    border: 3px solid #F2994A; /* Borde naranja grueso */
+    color: #F2994A; /* Texto naranja */
+
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; /* Letra gruesa */
+    font-size: 1rem;
+    padding: 12px 10px;
+    border-radius: 50px; /* Forma de píldora completa */
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.1s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+    /* Efecto Hover */
+    .btn-grid:hover {
+        background-color: #F2994A;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(242, 153, 74, 0.4);
+    }
+
+    /* Efecto Click */
+    .btn-grid:active {
+        transform: scale(0.98) translateY(0);
+    }
+
