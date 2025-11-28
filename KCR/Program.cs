@@ -1,6 +1,7 @@
 using KCR.Components;
 using KCR.Components.Account;
 using KCR.Data;
+using KCR.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<EmpleadoService>();
+builder.Services.AddScoped<PreFacturaService>();
+builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<TurnoService>();
 
 builder.Services.AddAuthentication(options =>
     {
