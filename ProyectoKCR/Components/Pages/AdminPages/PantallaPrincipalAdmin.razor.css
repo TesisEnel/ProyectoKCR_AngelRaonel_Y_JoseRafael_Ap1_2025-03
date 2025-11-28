@@ -1,0 +1,113 @@
+﻿@font-face {
+    font-family: 'Lato-Black';
+    src: url('/fonts/Lato/Lato-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+/* Wrapper ocupa el area de contenido del layout */
+.pantalla-wrapper {
+    position: relative;
+    height: 100%;
+    min-height: 100vh;
+    background: inherit; /* Blanco como en el mock */
+    display: flex;
+    align-items: flex-start;
+    /* padding superior e izquierda para separar del sidebar */
+    padding: 72px 64px;
+    box-sizing: border-box;
+    font-family: 'Lato-Black', 'Lato', sans-serif;
+}
+
+/* Contenido principal (alineado a la izquierda del área de contenido) */
+.pantalla-content {
+    max-width: 720px;
+}
+
+/* Título grande */
+.welcome-title {
+    margin: 0;
+    font-size: 76px; /* tamaño cercano al mock, ajusta si hace falta */
+    line-height: 1;
+    color: #000000;
+    font-family: 'Lato-Black', 'Lato', sans-serif;
+}
+
+/* Línea decorativa naranja pequeña debajo del título */
+.title-underline {
+    width: 96px;
+    height: 8px;
+    background: #F2994A;
+    border-radius: 4px;
+    margin: 18px 0 12px 0;
+}
+
+/* Subtítulo con estilo gris y separación */
+.subtitle {
+    margin: 0;
+    color: #6b6b6b;
+    font-weight: 700;
+    font-size: 25px;
+    padding-left: 4px;
+    border-left: 80px solid transparent; /* deja espacio a la izquierda para que la línea naranja funcione como separación visual */
+}
+
+/* Decor plus icons */
+.decor-plus {
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    right: 64px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    opacity: 1;
+}
+
+    /* Sitúa el plus outline en la esquina superior derecha */
+    .decor-plus.top-right {
+        top: 64px;
+    }
+
+    /* Sitúa el plus relleno en la esquina inferior derecha */
+    .decor-plus.bottom-right {
+        bottom: 48px;
+        right: 48px;
+    }
+
+    /* versión rellena más grande para el bottom-right */
+    .decor-plus.filled {
+        width: 84px;
+        height: 84px;
+        opacity: 1;
+    }
+
+/* Responsive ajustes */
+@media (max-width: 1200px) {
+    .welcome-title {
+        font-size: 56px;
+    }
+
+    .pantalla-wrapper {
+        padding: 48px 32px;
+    }
+
+    .decor-plus {
+        right: 32px;
+    }
+}
+
+@media (max-width: 700px) {
+    .welcome-title {
+        font-size: 40px;
+    }
+
+    .pantalla-wrapper {
+        padding: 24px 18px;
+    }
+
+    .decor-plus {
+        display: none; /* ocultar decorativos en pantallas pequeñas */
+    }
+}

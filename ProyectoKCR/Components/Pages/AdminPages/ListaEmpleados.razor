@@ -1,0 +1,92 @@
+﻿@page "/lista-empleados"
+@layout AdminLayout
+
+<div class="lista-empleados-page">
+
+    <div class="list-card">
+
+        <h1 class="list-title">Lista de Empleados</h1>
+
+        <div class="toolbar">
+            <button class="btn-action btn-nuevo" @onclick="RegistrarNuevo">
+                + Nuevo Empleado
+            </button>
+        </div>
+
+        <table class="empleados-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Cédula</th>
+                    <th>Cargo</th>
+                    <th>Usuario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var empleado in Empleados)
+                {
+                    <tr>
+                        <td>@empleado.IdEmpleado</td>
+                        <td>@empleado.Nombre</td>
+                        <td>@empleado.Cedula</td>
+                        <td>@empleado.Cargo</td>
+                        <td>@empleado.Usuario</td>
+                        <td>
+                            <button class="btn-action btn-modificar" @onclick="() => Modificar(empleado.IdEmpleado)">Modificar</button>
+                            <button class="btn-action btn-eliminar" @onclick="() => Eliminar(empleado.IdEmpleado)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+@code {
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    // Modelo de datos simple para la lista (Mismo modelo que usamos en RegistroEmpleado)
+    public class EmpleadoModelo
+    {
+        public string IdEmpleado { get; set; }
+        public string Nombre { get; set; }
+        public string Cedula { get; set; }
+        public string Cargo { get; set; }
+        public string Usuario { get; set; }
+        public string Clave { get; set; }
+    }
+
+    // Datos de ejemplo para poblar la tabla
+    private List<EmpleadoModelo> Empleados = new List<EmpleadoModelo>
+    {
+        new EmpleadoModelo { IdEmpleado = "E001", Nombre = "Juan Pérez", Cedula = "402-XXXXXXX-X", Cargo = "Diseñador", Usuario = "jperez" },
+        new EmpleadoModelo { IdEmpleado = "E002", Nombre = "Maria Gómez", Cedula = "001-XXXXXXX-X", Cargo = "Cajero", Usuario = "mgomez" },
+        new EmpleadoModelo { IdEmpleado = "E003", Nombre = "Carlos Ruiz", Cedula = "223-XXXXXXX-X", Cargo = "Supervisor", Usuario = "cruiz" }
+    };
+
+    private void RegistrarNuevo()
+    {
+        NavigationManager.NavigateTo("/registro-empleado");
+    }
+
+    private void Modificar(string id)
+    {
+        // Navegar a la página de modificar con el ID del empleado
+        NavigationManager.NavigateTo($"/modificar-empleado/{id}");
+    }
+
+    private void Eliminar(string id)
+    {
+        // Lógica para eliminar el empleado. Se debe añadir una confirmación.
+        Console.WriteLine($"Eliminando empleado con ID: {id}");
+        var empleadoAEliminar = Empleados.FirstOrDefault(e => e.IdEmpleado == id);
+        if (empleadoAEliminar != null)
+        {
+            Empleados.Remove(empleadoAEliminar);
+        }
+    }
+}

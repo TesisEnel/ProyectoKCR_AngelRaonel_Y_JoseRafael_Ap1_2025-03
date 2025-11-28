@@ -1,0 +1,21 @@
+﻿.page-admin-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Evita scroll doble */
+}
+
+.sidebar-admin {
+    /* El ancho debe ser igual al ancho del NavMenu.kcr-sidebar para que no haya desajustes */
+    width: 280px;
+    flex-shrink: 0;
+    height: 100%;
+}
+
+.content-admin {
+    flex-grow: 1; /* Ocupa todo el espacio restante */
+    background-color: #EEE; /* Fondo gris claro */
+    overflow-y: auto; /* Scroll solo en el contenido si es muy largo */
+    position: relative;
+    padding: 30px; /* Separación del contenido de los bordes */
+}
