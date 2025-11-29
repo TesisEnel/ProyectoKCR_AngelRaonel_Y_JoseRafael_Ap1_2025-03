@@ -2,7 +2,8 @@
 
 @page "/seleccion-servicio"
 
-
+@inject ClienteService clienteService
+@inject TurnoService turnoService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
@@ -136,6 +137,12 @@
     [SupplyParameterFromQuery(Name = "telefono")]
     public string? TelefonoRecibido { get; set; }
 
+    [SupplyParameterFromQuery(Name = "cedula")]
+    public string? CedulaRecibida { get; set; }
+
+    [SupplyParameterFromQuery(Name = "correo")]
+    public string? CorreoRecibido { get; set; }
+
     // Propiedades para mostrar (con valores por defecto si vienen vacíos)
     public string NombreParaMostrar => string.IsNullOrEmpty(NombreRecibido) ? "Cliente" : NombreRecibido;
     public string TelefonoParaMostrar => string.IsNullOrEmpty(TelefonoRecibido) ? "---" : TelefonoRecibido;
@@ -194,12 +201,14 @@
 
     private void GenerarTicketFinal()
     {
-        // AQUÍ VA LA LÓGICA DE IMPRESIÓN O GUARDADO EN BASE DE DATOS
-        // Por ahora, simulamos que termina y vuelve al inicio o imprime
-        Console.WriteLine($"Imprimiendo ticket {codigoTurno} para {NombreParaMostrar}");
+        Clientes cliente = new Clientes();
+        cliente.Nombres = NombreRecibido;
+        cliente.Cedula = CedulaRecibida;
+        cliente.Correo = CorreoRecibido;
+        cliente.Telefono = TelefonoRecibido;
+        cliente.Fecha = DateTime.UtcNow;
+        clienteService.Guardar(cliente);
 
-        // Opcional: Volver al inicio
-        // navigationManager.NavigateTo("/");
     }
 
     private void IrAtras()

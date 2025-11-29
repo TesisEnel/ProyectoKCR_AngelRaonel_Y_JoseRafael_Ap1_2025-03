@@ -20,10 +20,6 @@
         <h1 class="welcome-title">Bienvenidos/as</h1>
         <div class="form-card">
 
-            <div class="form-group">
-                <label class="required">Digite su nombre:</label>
-                <input type="text" placeholder="Nombre" @bind="nombre" class="styled-input" />
-            </div>
 
             <div class="form-group">
                 <label>Cédula (Opcional):</label>
@@ -31,9 +27,20 @@
             </div>
 
             <div class="form-group">
+                <label class="required">Digite su nombre:</label>
+                <input type="text" placeholder="Nombre" @bind="nombre" class="styled-input" />
+            </div>
+
+            <div class="form-group">
                 <label class="required">Teléfono/WhatsApp:</label>
                 <input type="text" placeholder="000-000-0000" @bind="telefono" class="styled-input" />
             </div>
+            
+            <div class="form-group">
+                <label class="required">Correo (Opcional):</label>
+                <input type="text" placeholder="Ejemplo@kcr.com" @bind="correo" class="styled-input" />
+            </div>
+
 
         </div>
         <div class="action-buttons">
@@ -47,17 +54,15 @@
 @code {
     @implements IDisposable
 
-    // --- 1. VARIABLES DE ESTADO Y DATOS (PRIORIDAD AL INICIO) ---
     private string nombre { get; set; } = string.Empty;
     private string cedula { get; set; } = string.Empty;
     private string telefono { get; set; } = string.Empty;
+    private string correo { get; set; } = string.Empty;
     private int currentImageIndex = 0;
-    private Clientes cliente = new Clientes();
 
-    // CLAVE: Para detener el bucle infinito cuando el usuario cambia de página
+
     private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-    // Lista de imágenes (sin el video pesado)
     private readonly List<string> carouselImages = new List<string>
     {
         "/Img-Vector/Carrusel/carr1.png",
@@ -67,18 +72,12 @@
         "/Img-Vector/Carrusel/carr5.png"
     };
 
-    // --- 2. PROPIEDADES CALCULADAS ---
     private string currentImage => carouselImages[currentImageIndex];
 
-
-    // --- 3. LÓGICA DEL CICLO DE VIDA ---
     protected override Task OnInitializedAsync()
     {
-        // NOTA CLAVE: Iniciamos la tarea sin usar 'await' para que no bloquee la inicialización.
-        // Esto permite que el componente se renderice inmediatamente.
         _ = StartCarouselLoop();
 
-        // Devolvemos Task.CompletedTask para indicar que la inicialización sincrónica ha terminado.
         return Task.CompletedTask;
     }
 
@@ -90,24 +89,18 @@
         {
             try
             {
-                // Espera 3 segundos entre cambios de imagen
                 await Task.Delay(3000, token);
             }
             catch (TaskCanceledException)
             {
-                // El componente se cerró
                 return;
             }
-
-            // 1. Actualiza el índice
             currentImageIndex = (currentImageIndex + 1) % carouselImages.Count;
 
-            // 2. Forzar el redibujo
             await InvokeAsync(StateHasChanged);
         }
     }
 
-    // --- 4. LÓGICA DEL FORMULARIO ---
     private void LimpiarFormulario()
     {
         nombre = "";
@@ -117,34 +110,21 @@
     }
     private async Task ProcesarTurno()
     {
-        // 1. Validación simple
         if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
         {
-            // Aquí podrías poner una alerta o mensaje de error
             return;
         }
 
-        // 2. Simulación de proceso (opcional, si quieres mantener el delay)
         await Task.Delay(1000);
 
-        // 3. Preparamos el nombre para enviarlo en la URL (maneja espacios y tildes)
-        var nombreCodificado = Uri.EscapeDataString(nombre);
-        cliente.Nombres = nombre;
-        cliente.Cedula = cedula;
-        cliente.Telefono = telefono;
-        cliente.Fecha = DateTime.UtcNow;
-        clienteservice.Guardar(cliente);
 
-        // 4. Navegamos a la siguiente página pasando el nombre como "Query String"
-        // Codificamos ambos datos
         var nombreCod = Uri.EscapeDataString(nombre);
         var telCod = Uri.EscapeDataString(telefono);
+        var cedulacod = Uri.EscapeDataString(cedula);
+        var correocod = Uri.EscapeDataString(correo);
 
-        // Pasamos ambos parámetros
-        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCod}&telefono={telCod}");
+        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCod}&telefono={telCod}&cedula={cedulacod}&correo={correocod}");
 
-        // Nota: No limpiamos el formulario aquí inmediatamente si queremos volver atrás y ver los datos,
-        // pero si prefieres limpiarlo, deja tu línea:
         LimpiarFormulario();
     }
 

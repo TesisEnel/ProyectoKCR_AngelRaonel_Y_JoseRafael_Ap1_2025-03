@@ -80,32 +80,6 @@ public string? Mode { get; set; }
 
     private EmpleadoModelo nuevoEmpleado = new EmpleadoModelo();
 
-    // private bool IsModify => string.Equals(Mode, "modificar", StringComparison.OrdinalIgnoreCase);
-
-    // protected override void OnParametersSet()
-    // {
-    //     if (IsModify)
-    //     {
-    //         // TODO: replace with real load from service when available.
-    //         // If EmpleadoId is provided, load that employee. Here we show a mock preview.
-    //         if (EmpleadoId.HasValue)
-    //         {
-    //             // load real record
-    //         }
-    //         else
-    //         {
-    //             // mock preview so UI shows values while designing
-    //             nuevoEmpleado = new EmpleadoModelo
-    //             {
-    //                 Nombre = "Juan Pérez",
-    //                 Cedula = "001-1234567-8",
-    //                 Cargo = "Diseñador",
-    //                 Usuario = "jperez",
-    //                 Clave = ""
-    //             };
-    //         }
-    //     }
-    // }
 
     private void GuardarEmpleado()
     {
