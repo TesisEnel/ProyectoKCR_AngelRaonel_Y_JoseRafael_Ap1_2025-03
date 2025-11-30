@@ -10,9 +10,7 @@
     <div class="left-panel-carousel">
         <h2 class="carousel-title">¡Conócenos!</h2>
         <div class="carousel-frame">
-
             <img src="@currentImage" class="carousel-img fade-animation" key="@currentImage" />
-
         </div>
     </div>
 
@@ -20,10 +18,16 @@
         <h1 class="welcome-title">Bienvenidos/as</h1>
         <div class="form-card">
 
-
-            <div class="form-group">
-                <label>Cédula (Opcional):</label>
-                <input type="text" placeholder="000-0000000-0" @bind="cedula" class="styled-input" />
+            <div class="form-group cedula-group">
+                <label>Cédula:</label>
+                <div class="cedula-row">
+                    <input type="text" placeholder="000-0000000-0" @bind="cedula" class="styled-input" />
+                    <button class="submit btn-outline small" @onclick="BuscarCedulaAsync" disabled="@IsSearching">Buscar</button>
+                </div>
+                @if (searchMessage is not null)
+                {
+                    <div class="search-message">@searchMessage</div>
+                }
             </div>
 
             <div class="form-group">
@@ -41,11 +45,19 @@
                 <input type="text" placeholder="Ejemplo@kcr.com" @bind="correo" class="styled-input" />
             </div>
 
-
         </div>
+
         <div class="action-buttons">
             <button class="btn-outline" @onclick="LimpiarFormulario">BORRAR</button>
-            <button class="btn-solid" @onclick="ProcesarTurno">SIGUIENTE</button>
+            @if (isEditMode)
+            {
+                <button class="btn-outline" @onclick="CancelarEdicion">CANCELAR</button>
+                <button class="btn-solid" @onclick="GuardarClienteAsync" disabled="@isSaving">@((isSaving ? "GUARDANDO..." : "GUARDAR"))</button>
+            }
+            else
+            {
+                <button class="btn-solid" @onclick="ProcesarTurno">SIGUIENTE</button>
+            }
         </div>
     </div>
 
@@ -60,9 +72,7 @@
     private string correo { get; set; } = string.Empty;
     private int currentImageIndex = 0;
 
-
     private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-
     private readonly List<string> carouselImages = new List<string>
     {
         "/Img-Vector/Carrusel/carr1.png",
@@ -74,10 +84,16 @@
 
     private string currentImage => carouselImages[currentImageIndex];
 
+    // New state for lookup/edit
+    private bool isEditMode = false;
+    private bool IsSearching = false;
+    private bool isSaving = false;
+    private string? searchMessage;
+    private int? editingClienteId;
+
     protected override Task OnInitializedAsync()
     {
         _ = StartCarouselLoop();
-
         return Task.CompletedTask;
     }
 
@@ -106,8 +122,13 @@
         nombre = "";
         cedula = "";
         telefono = "";
+        correo = "";
+        isEditMode = false;
+        editingClienteId = null;
+        searchMessage = null;
         StateHasChanged();
     }
+
     private async Task ProcesarTurno()
     {
         if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
@@ -116,7 +137,6 @@
         }
 
         await Task.Delay(1000);
-
 
         var nombreCod = Uri.EscapeDataString(nombre);
         var telCod = Uri.EscapeDataString(telefono);
@@ -128,10 +148,117 @@
         LimpiarFormulario();
     }
 
+    // --- New: search by cedula using existing service methods ---
+    private async Task BuscarCedulaAsync()
+    {
+        searchMessage = null;
+        if (string.IsNullOrWhiteSpace(cedula))
+        {
+            searchMessage = "Ingrese una cédula para buscar.";
+            return;
+        }
+
+        IsSearching = true;
+        isEditMode = false;
+        editingClienteId = null;
+
+        try
+        {
+            var cliente = await clienteservice.BuscarPorCedula(cedula.Trim());
+            if (cliente is null)
+            {
+                searchMessage = "No se encontró cliente con esa cédula.";
+                // Leave form as-is so user can create new
+            }
+            else
+            {
+                // populate form for editing using the existing Clientes model
+                nombre = cliente.Nombres ?? string.Empty;
+                telefono = cliente.Telefono ?? string.Empty;
+                correo = cliente.Correo ?? string.Empty;
+                editingClienteId = cliente.IdCliente;
+                isEditMode = true;
+                searchMessage = "Cliente encontrado. Puede editar y guardar.";
+            }
+        }
+        catch (Exception ex)
+        {
+            searchMessage = $"Error al buscar cliente: {ex.Message}";
+        }
+        finally
+        {
+            IsSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        LimpiarFormulario();
+    }
+
+    private async Task GuardarClienteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
+        {
+            searchMessage = "Nombre y teléfono son requeridos.";
+            return;
+        }
+
+        isSaving = true;
+        searchMessage = null;
+
+        try
+        {
+            var cliente = new Clientes
+            {
+                IdCliente = editingClienteId ?? 0,
+                Cedula = string.IsNullOrWhiteSpace(cedula) ? null : cedula.Trim(),
+                Nombres = nombre,
+                Telefono = telefono,
+                Correo = correo,
+                Fecha = DateTime.UtcNow
+            };
+
+            var saved = await clienteservice.Guardar(cliente);
+
+            if (saved)
+            {
+                // Get fresh copy (and Id) from DB using existing service method
+                var persisted = await clienteservice.BuscarPorCedula(cliente.Cedula ?? string.Empty);
+                if (persisted is not null)
+                {
+                    editingClienteId = persisted.IdCliente;
+                    isEditMode = true;
+                    searchMessage = "Cliente guardado correctamente.";
+                }
+                else
+                {
+                    // Fallback: if persisted not found by cedula, but Guardar returned true, keep local id if set
+                    editingClienteId = cliente.IdCliente > 0 ? cliente.IdCliente : editingClienteId;
+                    isEditMode = true;
+                    searchMessage = "Cliente guardado correctamente.";
+                }
+            }
+            else
+            {
+                searchMessage = "No se pudo guardar el cliente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            searchMessage = $"Error al guardar: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
     // --- 5. LIMPIEZA ---
     public void Dispose()
     {
-        // Detiene el bucle del carrusel cuando el componente se cierra
         _cancellationTokenSource.Cancel();
         _cancellationTokenSource.Dispose();
     }

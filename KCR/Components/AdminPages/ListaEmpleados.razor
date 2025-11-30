@@ -1,5 +1,7 @@
 ﻿@page "/lista-empleados"
 @layout MainLayout
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
 <div class="lista-empleados-page">
     <div class="content">
@@ -14,7 +16,6 @@
                         <option value="">Seleccione</option>
                         <option value="Cargo">Cargo</option>
                         <option value="ID">ID</option>
-                        @* Puedes añadir más opciones según tus necesidades *@
                     </select>
                 </div>
                 <div class="search-group">
@@ -57,7 +58,6 @@
                 </table>
             </div>
 
-            @* Agregamos el botón Volver dentro de la barra gris inferior *@
             <div class="bottom-bar">
                 <button class="btn-action btn-volver" @onclick="Volver">
                     <span class="icon">⬅️</span> Volver
@@ -71,11 +71,9 @@
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
-    // --- Nuevas propiedades para la funcionalidad de Búsqueda y Filtro ---
     private string FiltroSeleccionado { get; set; } = "";
     private string TerminoBusqueda { get; set; } = "";
     private List<EmpleadoModelo> EmpleadosFiltrados => AplicarFiltroYBusqueda();
-    // ---------------------------------------------------------------------
 
     public class EmpleadoModelo
     {
@@ -140,8 +138,9 @@
             StateHasChanged(); // Para actualizar la tabla
         }
     }
-    private void Volver(MouseEventArgs args)
+
+    private void Volver()
     {
-        throw new NotImplementedException();
+        navigationManager.NavigateTo("/");  
     }
 }

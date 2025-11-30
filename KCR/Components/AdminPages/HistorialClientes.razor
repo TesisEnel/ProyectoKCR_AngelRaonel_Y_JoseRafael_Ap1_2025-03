@@ -1,5 +1,7 @@
 ﻿@page "/historial-clientes"
 @layout MainLayout
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
 <div class="lista-empleados-page">
     @* Reutilizamos la clase para el layout general (margen) *@
@@ -127,6 +129,6 @@
 
     private void Volver()
     {
-        NavigationManager.NavigateTo("/"); // Asumiendo que "/" es tu página principal.
+        navigationManager.NavigateTo("/"); // Asumiendo que "/" es tu página principal.
     }
 }

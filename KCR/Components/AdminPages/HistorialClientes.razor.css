@@ -1,18 +1,16 @@
 ﻿/* ========================================================================= */
-/* ESTILOS ESPECÍFICOS DE HISTORIAL CLIENTES (Reutilizando clases)           */
+/* ESTILOS ESPECÍFICOS DE HISTORIAL CLIENTES (limpio, solo lo necesario)     */
 /* ========================================================================= */
 
 /* --- 1. CONTENEDOR DE LA PÁGINA (Ajuste para MainLayout) --- */
 .lista-empleados-page {
-    /* Define el margen para evitar chocar con el Sidebar naranja */
-    padding: 20px; /* Espacio alrededor de la tarjeta gris */
+    padding: 20px;
     width: auto;
     min-height: 100vh;
     box-sizing: border-box;
 }
 
 .list-card {
-    /* El contenedor principal gris */
     background-color: #E5E5E5;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -30,17 +28,17 @@
 .list-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #F08035; /* Color Naranja de tu marca */
+    color: #F08035;
     text-transform: uppercase;
     letter-spacing: 1px;
     padding: 20px 30px 10px 30px;
     margin-bottom: 0;
-    border-bottom: 2px solid #ccc; /* La línea separadora debajo del título */
+    border-bottom: 2px solid #ccc;
     position: relative;
     z-index: 2;
 }
 
-/* --- 3. BARRA DE FILTROS Y BÚSQUEDA (top-toolbar) --- */
+/* --- 3. BARRA DE FILTROS Y BÚSQUEDA (si aplica) --- */
 .top-toolbar {
     display: flex;
     gap: 30px;
@@ -56,12 +54,12 @@
     flex-direction: column;
 }
 
-    .filter-group label, .search-group label {
-        font-weight: 700;
-        color: #444;
-        margin-bottom: 5px;
-        font-size: 1rem;
-    }
+.filter-group label, .search-group label {
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
 
 .form-select, .form-control {
     padding: 8px 12px;
@@ -74,13 +72,9 @@
     height: 38px;
 }
 
-.search-input-container {
-    position: relative;
-}
+.search-input-container { position: relative; }
 
-    .search-input-container .form-control {
-        padding-right: 35px;
-    }
+.search-input-container .form-control { padding-right: 35px; }
 
 .search-icon {
     position: absolute;
@@ -92,9 +86,9 @@
     font-size: 1.1em;
 }
 
-/* --- 4. CONTENEDOR DE LA TABLA (El "cuadro blanco" que flota) --- */
+/* --- 4. CONTENEDOR DE LA TABLA --- */
 .table-container {
-    flex-grow: inherit; /* Ocupa el espacio restante */
+    flex-grow: inherit;
     background-color: white;
     margin: 0 30px;
     border-radius: 8px;
@@ -102,33 +96,33 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: relative;
     z-index: 3;
-    overflow-x: auto; /* Permite scroll horizontal si la tabla es muy ancha */
+    overflow-x: auto;
 }
 
-/* --- 5. TABLA DE EMPLEADOS/HISTORIAL --- */
+/* --- 5. TABLA DE HISTORIAL --- */
 .empleados-table {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
 }
 
-    .empleados-table th, .empleados-table td {
-        padding: 12px 15px;
-        text-align: left;
-        font-size: 0.95rem;
-        border-bottom: 1px solid #eee;
-    }
+.empleados-table th, .empleados-table td {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #eee;
+}
 
-    .empleados-table th {
-        background-color: #f0f0f0;
-        color: #555;
-        font-weight: 700;
-        border-bottom: 2px solid #ccc;
-    }
+.empleados-table th {
+    background-color: #f0f0f0;
+    color: #555;
+    font-weight: 700;
+    border-bottom: 2px solid #ccc;
+}
 
-    .empleados-table tbody tr:hover {
-        background-color: #fafafa;
-    }
+.empleados-table tbody tr:hover {
+    background-color: #fafafa;
+}
 
 /* --- 6. BARRA INFERIOR GRIS y BOTÓN VOLVER --- */
 .bottom-bar {
@@ -136,33 +130,35 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 40px;
+    height: 56px;
     background-color: #ccc;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    z-index: 2;
-    /* Estilos para el botón */
+    z-index: 50; /* asegurar que esté por encima del contenido */
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
     align-items: center;
-    padding-left: 30px;
+    padding: 0 20px;
 }
 
-.btn-volver {
-    background-color: #A34857; /* Color de Volver (Rojo/Rosado) */
-    color: white;
-    display: flex;
+/* Volver: estilo específico y con mayor especificidad para evitar conflictos */
+.bottom-bar .btn-volver {
+    background-color: #ffffff;
+    color: #0d6efd;
+    border: 2px solid #0d6efd;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
-    font-size: 1rem;
-    font-weight: 500;
+    gap: 8px;
+    margin-left: 0;
 }
 
     .btn-volver:hover {
-        background-color: #8C3C48;
+        background-color: #e7f1ff;
     }
-
 /* --- 7. BOTONES DE ACCIÓN (Modificar/Eliminar/Ver Detalle) --- */
 .btn-action {
     padding: 8px 15px;
@@ -185,10 +181,7 @@
         background-color: #46B8DA;
     }
 
-.btn-eliminar {
-    background-color: #A34857; /* Rosado/Rojo */
-    color: white;
-}
+
 
     .btn-eliminar:hover {
         background-color: #8C3C48;
