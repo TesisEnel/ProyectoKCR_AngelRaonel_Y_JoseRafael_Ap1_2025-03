@@ -1,0 +1,52 @@
+﻿@rendermode InteractiveServer
+
+<span class="time-display">@currentTime</span>
+
+@code {
+    @implements IDisposable
+
+    private string currentTime { get; set; } = DateTime.Now.ToString("hh:mm:ss");
+    
+    // Usamos CancellationTokenSource para detener el bucle
+    private CancellationTokenSource _clockCts = new CancellationTokenSource();
+
+    protected override Task OnInitializedAsync()
+    {
+        // 1. Inicia el bucle asíncrono
+        StartClockLoop();
+        
+        // 2. Devuelve un Task.CompletedTask (no esperamos la finalización del bucle)
+        return Task.CompletedTask;
+    }
+
+    // 💡 TU CÓDIGO DE BUCLE ASÍNCRONO
+    private async Task StartClockLoop()
+    {
+        var token = _clockCts.Token;
+
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                // Espera 1 segundo
+                await Task.Delay(1000, token);
+            }
+            catch (TaskCanceledException)
+            {
+                // El componente se cerró, salimos del bucle
+                return;
+            }
+
+            // Actualiza la hora y notifica a Blazor (InvokeAsync es necesario)
+            currentTime = DateTime.Now.ToString("hh:mm:ss");
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Limpieza al cerrar el componente
+    public void Dispose()
+    {
+        _clockCts.Cancel();
+        _clockCts.Dispose();
+    }
+}

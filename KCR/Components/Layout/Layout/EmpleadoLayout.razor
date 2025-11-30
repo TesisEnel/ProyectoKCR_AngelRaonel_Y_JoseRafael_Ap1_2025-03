@@ -1,0 +1,50 @@
+﻿@inherits LayoutComponentBase
+
+<div class="employee-login-container">
+    <div class="header-banner">
+        <div class="header-logo">
+            <img src="/Img-Vector/logoKCR.png" alt="KCR Print Center Logo" />
+        </div>
+        <h1 class="header-title">VISTA DE TURNOS</h1>
+        <div class="header-time">
+            HORA <CLock/> 
+        </div>
+    </div>
+
+    <div class="login-grid">
+        <img src="/Img-Vector/Union-1.svg" class="vector-decor login-plus-tl" alt="Decoración Plus" />
+        <img src="/Img-Vector/Union-2.svg" class="vector-decor login-plus-tr" alt="Decoración Plus" />
+        <img src="/Img-Vector/Union.svg" class="vector-decor login-plus-bl" alt="Decoración Plus" />
+        <img src="/Img-Vector/Union-1.svg" class="vector-decor login-plus-br" alt="Decoración Plus" />
+
+        <main class="login-content-wrapper">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    private string currentTime { get; set; } = DateTime.Now.ToString("HH:mm:ss");
+    private System.Threading.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        // Inicia el temporizador para actualizar el reloj
+        _timer = new System.Threading.Timer(Callback, null, 0, 1000);
+    }
+
+    private void Callback(object? state)
+    {
+        InvokeAsync(() =>
+        {
+            currentTime = DateTime.Now.ToString("HH:mm:ss");
+            StateHasChanged();
+        });
+    }
+
+    // Limpieza
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

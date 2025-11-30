@@ -1,0 +1,179 @@
+﻿/* --- Estilos del Contenido de Login (EmployeeLoginContent.razor) --- */
+
+.login-panel {
+    flex: 0 0 auto;
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+}
+
+/* Reutilizando .form-card, pero ajustando el padding y el gap */
+.form-card.login-card {
+    padding: 40px 30px;
+    gap: 30px;
+}
+
+/* Override del estilo de los inputs para alinearse con la imagen */
+.login-card .styled-input {
+    background: white;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 2px solid #F38B2A;
+    padding: 10px 0;
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+    /* Mantenemos el efecto de enfoque del CSS de cliente */
+    .login-card .styled-input:focus {
+        box-shadow: 0 4px 8px rgba(243, 139, 42, 0.3);
+    }
+
+/* Ajuste de los botones de acción */
+.login-action-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    margin-top: 40px;
+    width: 100%;
+    max-width: 450px;
+}
+
+    .login-action-buttons .btn-outline,
+    .login-action-buttons .btn-solid {
+        flex: 0 1 150px;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    .styled-input {
+    border: none;
+    background: #f9f9f9;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: #333;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    outline: none;
+    transition: all 0.16s;
+}
+
+.styled-input:focus {
+    box-shadow: 0 4px 8px rgba(243, 139, 42, 0.22);
+    background: white;
+}
+
+/* Action buttons area (mirrors client action-buttons) */
+.login-action-buttons,
+.action-buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    width: 100%;
+}
+
+
+
+.form-card,
+.login-card {
+    border: 3px solid #F38B2A;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+}
+
+/* Form group layout and labels */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+    .form-group label {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 6px;
+        font-style: italic;
+    }
+
+/* Required asterisk */
+.required::before {
+    content: "* ";
+    color: red;
+}
+
+/* Input visual style (same as cliente form) */
+.styled-input {
+    border: none;
+    background: #f9f9f9;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: #333;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    outline: none;
+    transition: all 0.16s;
+}
+
+    .styled-input:focus {
+        box-shadow: 0 4px 8px rgba(243, 139, 42, 0.22);
+        background: white;
+    }
+
+/* Action buttons area (mirrors client action-buttons) */
+.login-action-buttons,
+.action-buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    width: 100%;
+}
+
+/* Buttons styles aligned with cliente design */
+.btn-outline,
+.btn-solid {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.08s;
+    box-sizing: border-box;
+}
+
+.btn-outline {
+    background: white;
+    border: 2px solid #F38B2A;
+    color: #F38B2A;
+}
+
+.btn-solid {
+    background: #F38B2A;
+    border: 2px solid #F38B2A;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+/* Small responsive tweaks */
+@media (max-width: 720px) {
+    .form-card,
+    .login-card {
+        padding: 18px;
+        border-radius: 14px;
+    }
+
+    .btn-outline, .btn-solid {
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+}

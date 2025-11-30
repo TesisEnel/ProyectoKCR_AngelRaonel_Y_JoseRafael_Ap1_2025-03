@@ -1,0 +1,96 @@
+﻿/* --- Estilo Base del Layout (EmployeeLayout.razor) --- */
+
+.employee-login-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    background-color: white; /* Fondo blanco general */
+    font-family: 'Lato', sans-serif;
+}
+
+/* --- ENCABEZADO (Header) --- */
+.header-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #F38B2A; /* Naranja principal */
+    color: white;
+    padding: 15px 40px;
+    height: 90px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 20;
+}
+
+.header-logo img {
+    height: 60px;
+}
+
+.header-title {
+    font-weight: 900;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.header-time {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* --- CUERPO DE CONTENIDO Y DECORACIONES --- */
+.login-grid {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 90px; /* Espacio para el header fijo */
+    position: relative;
+    width: 100%;
+}
+
+.login-content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+/* --- DECORACIONES (VECTORES) --- */
+.vector-decor {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Posicionamiento de las Cruces/Uniones */
+.login-plus-tl {
+    top: 20%;
+    left: 10%;
+    width: 120px;
+}
+
+.login-plus-tr {
+    top: 20%;
+    right: 10%;
+    width: 100px;
+}
+
+.login-plus-bl {
+    bottom: 10%;
+    left: 10%;
+    width: 150px;
+}
+
+.login-plus-br {
+    bottom: 10%;
+    right: 10%;
+    width: 100px;
+}

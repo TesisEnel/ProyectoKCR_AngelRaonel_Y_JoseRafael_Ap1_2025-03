@@ -1,6 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@implements IDisposable
-
+@rendermode InteractiveServer
 
 <div class="kiosk-container">
     <header class="kiosk-header">
@@ -13,7 +12,7 @@
         </div>
 
         <div class="header-right">
-            HORA <span class="time-display">@currentTime</span>
+            HORA <CLock />
         </div>
     </header>
 
@@ -34,42 +33,5 @@
     // Usamos CancellationTokenSource para detener el bucle cuando el componente se destruye
     private CancellationTokenSource _clockCts = new CancellationTokenSource();
 
-    protected override  Task OnInitializedAsync()
-    {
-        StartClockLoop();
-
-        // 2. Devolvemos Task.CompletedTask para que Blazor sepa que el componente
-        // puede continuar con el renderizado de la UI.
-        return Task.CompletedTask;
-    }
-
-    private async Task StartClockLoop()
-    {
-        var token = _clockCts.Token;
-
-        while (!token.IsCancellationRequested)
-        {
-            try
-            {
-                // 1. Espera 1 segundo
-                await Task.Delay(1000, token);
-            }
-            catch (TaskCanceledException)
-            {
-                // El componente se cerró, salimos del bucle
-                return;
-            }
-
-            // 2. Actualiza la hora y notifica a Blazor
-            currentTime = DateTime.Now.ToString("hh:mm:ss");
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    public void Dispose()
-    {
-        // Detenemos el bucle al destruir el componente
-        _clockCts.Cancel();
-        _clockCts.Dispose();
-    }
+    
 }

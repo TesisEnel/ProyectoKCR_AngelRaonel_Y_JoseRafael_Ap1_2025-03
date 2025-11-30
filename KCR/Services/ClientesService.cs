@@ -45,6 +45,11 @@ public class ClienteService(IDbContextFactory<ApplicationDbContext> DbFactory)
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.clientes.FirstOrDefaultAsync(c => c.IdCliente == clienteId);
     }
+    public async Task<Clientes> BuscarPorCedula(string cedula)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+        return await contexto.clientes.FirstOrDefaultAsync(c => c.Cedula == cedula);
+    }
 
     public async Task<List<Clientes>> Listar(Expression<Func<Clientes, bool>> criterio)
     {
