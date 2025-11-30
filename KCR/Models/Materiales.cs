@@ -12,5 +12,5 @@ public class Materiales
     [Column(TypeName = "decimal(10, 2)")]
     public decimal PrecioUnitario { get; set; }
 
-    public ICollection<Servicios> Servicios { get; set; } = new List<Servicios>();
+    public ICollection<PreFacturaDetalles> PreFacturaDetalles { get; set; } = new List<PreFacturaDetalles>();
 }
