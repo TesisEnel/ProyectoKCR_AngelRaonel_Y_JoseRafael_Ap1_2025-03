@@ -18,7 +18,7 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
         await using var contexto = await DbFactory.CreateDbContextAsync();
         foreach (var item in detalle)
         {
-            var material = await contexto.materiales.SingleAsync(m => m.IdMaterial == item.Servicios.IdMaterial);
+            var material = await contexto.materiales.SingleAsync(m => m.IdMaterial == item.IdMaterial);
             if (tipoOperacion == TipoOperacion.Suma)
                 material.Existencia += item.Cantidad;
             else
@@ -90,7 +90,7 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
     public async Task<List<Servicios>> ListarServicios()
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.servicios.Include(p => p.IdMaterial).Where(s => s.IdServicio > 0).AsNoTracking().ToListAsync();
+        return await contexto.servicios.Include(p => p.IdServicio).Where(s => s.IdServicio > 0).AsNoTracking().ToListAsync();
     }
 
     public async Task<List<Materiales>> ListarMateriales()

@@ -9,8 +9,7 @@ public class Servicios
     public int IdServicio { get; set; }
     public string? Tipo { get; set; }
     public string Nombre { get; set; }
-    [Column(TypeName = "decimal(4, 2)")]
-    public decimal Precio { get; set; }
+    public double Precio { get; set; }
 
     public ICollection<Turnos> Turnos { get; set; } = new List<Turnos>();
     public ICollection<PreFacturaDetalles> PreFacturaDetalles { get; set; } = new List<PreFacturaDetalles>();

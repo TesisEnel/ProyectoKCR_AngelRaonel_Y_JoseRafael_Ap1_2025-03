@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KCR.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251129223403_Inicial")]
-    partial class Inicial
+    [Migration("20251130233647_PreFacturaDetalles")]
+    partial class PreFacturaDetalles
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -167,12 +167,49 @@ namespace KCR.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasColumnType("decimal(10, 2)");
+                    b.Property<double>("PrecioUnitario")
+                        .HasColumnType("float");
 
                     b.HasKey("IdMaterial");
 
                     b.ToTable("materiales");
+
+                    b.HasData(
+                        new
+                        {
+                            IdMaterial = 1,
+                            Existencia = 500,
+                            Nombre = "Papel Bond 8.5x11",
+                            PrecioUnitario = 1.0
+                        },
+                        new
+                        {
+                            IdMaterial = 2,
+                            Existencia = 500,
+                            Nombre = "Papel Bond 8.5x14",
+                            PrecioUnitario = 1.5
+                        },
+                        new
+                        {
+                            IdMaterial = 3,
+                            Existencia = 500,
+                            Nombre = "Papel Bond 11x17",
+                            PrecioUnitario = 2.0
+                        },
+                        new
+                        {
+                            IdMaterial = 4,
+                            Existencia = 500,
+                            Nombre = "Cartonite 11x17",
+                            PrecioUnitario = 10.0
+                        },
+                        new
+                        {
+                            IdMaterial = 5,
+                            Existencia = 500,
+                            Nombre = "Opalina 11x17",
+                            PrecioUnitario = 15.0
+                        });
                 });
 
             modelBuilder.Entity("KCR.Models.PreFacturaDetalles", b =>
@@ -186,6 +223,9 @@ namespace KCR.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
+                    b.Property<int?>("IdMaterial")
+                        .HasColumnType("int");
+
                     b.Property<int>("IdPreFactura")
                         .HasColumnType("int");
 
@@ -196,6 +236,8 @@ namespace KCR.Migrations
                         .HasColumnType("decimal(10, 2)");
 
                     b.HasKey("IdDetalle");
+
+                    b.HasIndex("IdMaterial");
 
                     b.HasIndex("IdPreFactura");
 
@@ -245,23 +287,123 @@ namespace KCR.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdServicio"));
 
-                    b.Property<int?>("IdMaterial")
-                        .HasColumnType("int");
-
                     b.Property<string>("Nombre")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Precio")
-                        .HasColumnType("decimal(4, 2)");
+                    b.Property<double>("Precio")
+                        .HasColumnType("float");
 
                     b.Property<string>("Tipo")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("IdServicio");
 
-                    b.HasIndex("IdMaterial");
-
                     b.ToTable("servicios");
+
+                    b.HasData(
+                        new
+                        {
+                            IdServicio = 1,
+                            Nombre = "COPIA B/N 8.5x11 (Bond)",
+                            Precio = 5.0
+                        },
+                        new
+                        {
+                            IdServicio = 2,
+                            Nombre = "COPIA B/N 8.5x14 (Bond)",
+                            Precio = 10.0
+                        },
+                        new
+                        {
+                            IdServicio = 3,
+                            Nombre = "COPIA B/N 11x17 (Bond)",
+                            Precio = 15.0
+                        },
+                        new
+                        {
+                            IdServicio = 4,
+                            Nombre = "COPIA COLOR 8.5x11 (Bond)",
+                            Precio = 15.0
+                        },
+                        new
+                        {
+                            IdServicio = 5,
+                            Nombre = "IMPRESION B/N 8.5x11 (Bond)",
+                            Precio = 5.0
+                        },
+                        new
+                        {
+                            IdServicio = 6,
+                            Nombre = "IMPRESION COLOR 8.5x11 (Bond)",
+                            Precio = 20.0
+                        },
+                        new
+                        {
+                            IdServicio = 7,
+                            Nombre = "IMPRESION COLOR 8.5x14 (Bond)",
+                            Precio = 25.0
+                        },
+                        new
+                        {
+                            IdServicio = 8,
+                            Nombre = "IMPRESION COLOR 11x17 (Bond)",
+                            Precio = 40.0
+                        },
+                        new
+                        {
+                            IdServicio = 9,
+                            Nombre = "IMPRESION COLOR 11x17 (Cartonité)",
+                            Precio = 75.0
+                        },
+                        new
+                        {
+                            IdServicio = 10,
+                            Nombre = "IMPRESION COLOR 11x17 (Opalina)",
+                            Precio = 85.0
+                        },
+                        new
+                        {
+                            IdServicio = 11,
+                            Nombre = "IMPRESION PLANO 24x36",
+                            Precio = 50.0
+                        },
+                        new
+                        {
+                            IdServicio = 12,
+                            Nombre = "IMPRESION PLANO 18x24",
+                            Precio = 30.0
+                        },
+                        new
+                        {
+                            IdServicio = 13,
+                            Nombre = "ENCUADERNADO (Pequeño/Carta)",
+                            Precio = 50.0
+                        },
+                        new
+                        {
+                            IdServicio = 14,
+                            Nombre = "ENCUADERNADO (Mediano/Oficio)",
+                            Precio = 75.0
+                        },
+                        new
+                        {
+                            IdServicio = 15,
+                            Nombre = "ENCUADERNADO (Grande/Doble Carta)",
+                            Precio = 100.0
+                        },
+                        new
+                        {
+                            IdServicio = 16,
+                            Nombre = "ESCANER",
+                            Precio = 15.0
+                        },
+                        new
+                        {
+                            IdServicio = 17,
+                            Nombre = "DISEÑO",
+                            Precio = 500.0
+                        });
                 });
 
             modelBuilder.Entity("KCR.Models.Turnos", b =>
@@ -451,6 +593,10 @@ namespace KCR.Migrations
 
             modelBuilder.Entity("KCR.Models.PreFacturaDetalles", b =>
                 {
+                    b.HasOne("KCR.Models.Materiales", "Materiales")
+                        .WithMany("PreFacturaDetalles")
+                        .HasForeignKey("IdMaterial");
+
                     b.HasOne("KCR.Models.PreFacturas", "PreFacturas")
                         .WithMany("PreFacturaDetalles")
                         .HasForeignKey("IdPreFactura")
@@ -460,6 +606,8 @@ namespace KCR.Migrations
                     b.HasOne("KCR.Models.Servicios", "Servicios")
                         .WithMany("PreFacturaDetalles")
                         .HasForeignKey("IdServicio");
+
+                    b.Navigation("Materiales");
 
                     b.Navigation("PreFacturas");
 
@@ -481,15 +629,6 @@ namespace KCR.Migrations
                     b.Navigation("Clientes");
 
                     b.Navigation("Empleados");
-                });
-
-            modelBuilder.Entity("KCR.Models.Servicios", b =>
-                {
-                    b.HasOne("KCR.Models.Materiales", "Materiales")
-                        .WithMany("Servicios")
-                        .HasForeignKey("IdMaterial");
-
-                    b.Navigation("Materiales");
                 });
 
             modelBuilder.Entity("KCR.Models.Turnos", b =>
@@ -623,7 +762,7 @@ namespace KCR.Migrations
 
             modelBuilder.Entity("KCR.Models.Materiales", b =>
                 {
-                    b.Navigation("Servicios");
+                    b.Navigation("PreFacturaDetalles");
                 });
 
             modelBuilder.Entity("KCR.Models.PreFacturas", b =>
