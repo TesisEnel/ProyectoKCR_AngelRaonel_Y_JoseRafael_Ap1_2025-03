@@ -8,7 +8,7 @@ public class Servicios
     [Key]
     public int IdServicio { get; set; }
     public string? Tipo { get; set; }
-    public string? Nombre { get; set; }
+    public string Nombre { get; set; }
     [Column(TypeName = "decimal(4, 2)")]
     public decimal Precio { get; set; }
     [ForeignKey("Materiales")]

@@ -210,7 +210,10 @@
         var creado = await clienteService.Guardar(cliente);
         if (creado)
         {
-            Console.WriteLine("Hello, World!");
+            Turnos turno = new Turnos();
+            turno.IdCliente = cliente.IdCliente;
+            turno.NumTurno = codigoTurno;
+      
         }
 
     }
