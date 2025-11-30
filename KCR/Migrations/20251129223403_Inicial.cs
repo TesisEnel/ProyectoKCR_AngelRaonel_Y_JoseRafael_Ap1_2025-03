@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace KCR.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateIdentitySchema : Migration
+    public partial class Inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace KCR.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(256)", nullable: true)
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -48,6 +48,55 @@ namespace KCR.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "clientes",
+                columns: table => new
+                {
+                    IdCliente = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombres = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cedula = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Correo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_clientes", x => x.IdCliente);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "empleados",
+                columns: table => new
+                {
+                    IdEmpleado = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Clave = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Cedula = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cargo = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_empleados", x => x.IdEmpleado);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "materiales",
+                columns: table => new
+                {
+                    IdMaterial = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Existencia = table.Column<int>(type: "int", nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_materiales", x => x.IdMaterial);
                 });
 
             migrationBuilder.CreateTable(
@@ -175,6 +224,109 @@ namespace KCR.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "preFacturas",
+                columns: table => new
+                {
+                    IdPreFactura = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NombreCliente = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdCliente = table.Column<int>(type: "int", nullable: true),
+                    IdEmpleado = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_preFacturas", x => x.IdPreFactura);
+                    table.ForeignKey(
+                        name: "FK_preFacturas_clientes_IdCliente",
+                        column: x => x.IdCliente,
+                        principalTable: "clientes",
+                        principalColumn: "IdCliente");
+                    table.ForeignKey(
+                        name: "FK_preFacturas_empleados_IdEmpleado",
+                        column: x => x.IdEmpleado,
+                        principalTable: "empleados",
+                        principalColumn: "IdEmpleado",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "servicios",
+                columns: table => new
+                {
+                    IdServicio = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Tipo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Precio = table.Column<decimal>(type: "decimal(4,2)", nullable: false),
+                    IdMaterial = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_servicios", x => x.IdServicio);
+                    table.ForeignKey(
+                        name: "FK_servicios_materiales_IdMaterial",
+                        column: x => x.IdMaterial,
+                        principalTable: "materiales",
+                        principalColumn: "IdMaterial");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "preFacturaDetalles",
+                columns: table => new
+                {
+                    IdDetalle = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Cantidad = table.Column<int>(type: "int", nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    IdServicio = table.Column<int>(type: "int", nullable: true),
+                    IdPreFactura = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_preFacturaDetalles", x => x.IdDetalle);
+                    table.ForeignKey(
+                        name: "FK_preFacturaDetalles_preFacturas_IdPreFactura",
+                        column: x => x.IdPreFactura,
+                        principalTable: "preFacturas",
+                        principalColumn: "IdPreFactura",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_preFacturaDetalles_servicios_IdServicio",
+                        column: x => x.IdServicio,
+                        principalTable: "servicios",
+                        principalColumn: "IdServicio");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "turnos",
+                columns: table => new
+                {
+                    IdTurno = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NumTurno = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IdServicio = table.Column<int>(type: "int", nullable: true),
+                    IdCliente = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_turnos", x => x.IdTurno);
+                    table.ForeignKey(
+                        name: "FK_turnos_clientes_IdCliente",
+                        column: x => x.IdCliente,
+                        principalTable: "clientes",
+                        principalColumn: "IdCliente",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_turnos_servicios_IdServicio",
+                        column: x => x.IdServicio,
+                        principalTable: "servicios",
+                        principalColumn: "IdServicio");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -218,6 +370,41 @@ namespace KCR.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_preFacturaDetalles_IdPreFactura",
+                table: "preFacturaDetalles",
+                column: "IdPreFactura");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_preFacturaDetalles_IdServicio",
+                table: "preFacturaDetalles",
+                column: "IdServicio");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_preFacturas_IdCliente",
+                table: "preFacturas",
+                column: "IdCliente");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_preFacturas_IdEmpleado",
+                table: "preFacturas",
+                column: "IdEmpleado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_servicios_IdMaterial",
+                table: "servicios",
+                column: "IdMaterial");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_turnos_IdCliente",
+                table: "turnos",
+                column: "IdCliente");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_turnos_IdServicio",
+                table: "turnos",
+                column: "IdServicio");
         }
 
         /// <inheritdoc />
@@ -242,10 +429,31 @@ namespace KCR.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "preFacturaDetalles");
+
+            migrationBuilder.DropTable(
+                name: "turnos");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "preFacturas");
+
+            migrationBuilder.DropTable(
+                name: "servicios");
+
+            migrationBuilder.DropTable(
+                name: "clientes");
+
+            migrationBuilder.DropTable(
+                name: "empleados");
+
+            migrationBuilder.DropTable(
+                name: "materiales");
         }
     }
 }
