@@ -1,4 +1,9 @@
-﻿@page "/lista-empleados"
+﻿@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+
+@page "/lista-empleados"
+
+
 @layout MainLayout
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer

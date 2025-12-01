@@ -1,4 +1,7 @@
-﻿@page "/historial-clientes"
+﻿@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+
+@page "/historial-clientes"
 @layout MainLayout
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer

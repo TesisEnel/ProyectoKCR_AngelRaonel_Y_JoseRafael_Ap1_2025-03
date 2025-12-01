@@ -1,4 +1,7 @@
-﻿@page "/"
+﻿@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+@page "/"
+
 @layout MainLayout
 @rendermode InteractiveServer
 
