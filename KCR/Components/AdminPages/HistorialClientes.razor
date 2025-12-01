@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
+@inject ClienteService clienteService
 
 <div class="lista-empleados-page">
     @* Reutilizamos la clase para el layout general (margen) *@
@@ -15,7 +16,7 @@
             <div class="top-toolbar">
                 <div class="filter-group">
                     <label for="filter-select">Filtrar por</label>
-                    <select id="filter-select" class="form-select" @bind="FiltroSeleccionado">
+                    <select id="filter-select" class="form-select" @bind="Filtro">
                         <option value="">Seleccione</option>
                         <option value="Cliente">Cliente</option>
                         <option value="Servicio">Servicio</option>
@@ -25,7 +26,7 @@
                 <div class="search-group">
                     <label for="search-input">Búsqueda</label>
                     <div class="search-input-container">
-                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="TerminoBusqueda" @oninput="Buscar" />
+                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="ValorFiltro" @oninput="Buscar" />
                         <span class="search-icon">🔍</span>
                     </div>
                 </div>
@@ -37,26 +38,28 @@
                     @* Reutilizamos la clase de tabla (empleados-table) *@
                     <thead>
                         <tr>
-                            <th>ID Servicio</th>
-                            <th>Cliente</th>
-                            <th>Servicio Realizado</th>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Cedula</th>
+                            <th>Correo</th>
+                            <th>Telefono</th>
                             <th>Fecha</th>
-                            <th>Monto Total</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var registro in RegistrosHistorial)
+                        @foreach (var cliente in clientes)
                         {
                             <tr>
-                                <td>@registro.IdServicio</td>
-                                <td>@registro.NombreCliente</td>
-                                <td>@registro.Servicio</td>
-                                <td>@registro.Fecha.ToShortDateString()</td>
-                                <td>@registro.Monto.ToString("C")</td>
-                                <td>
-                                    <button class="btn-action btn-modificar" @onclick="() => VerDetalle(registro.IdServicio)">Ver Detalle</button>
-                                </td>
+                                <td>@cliente.IdCliente</td>
+                                <td>@cliente.Nombres</td>
+                                <td>@cliente.Cedula</td>
+                                <td>@cliente.Correo</td>
+                                <td>@cliente.Telefono</td>
+                                <td>@cliente.Fecha.ToString("dd/MM/yyyy hh:mm")</td>
+                               @* <td>
+                                    <button class="btn-action btn-modificar" @onclick="() => VerDetalle(cliente.IdCliente)">Ver Detalle</button>
+                                </td>*@
                             </tr>
                         }
                     </tbody>
@@ -77,55 +80,33 @@
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
-    private string FiltroSeleccionado { get; set; } = "";
-    private string TerminoBusqueda { get; set; } = "";
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+    private List<Clientes> clientes { get; set; } = new List<Clientes>();
 
-    // Modelo de datos de ejemplo para el Historial
-    public class HistorialModelo
+    protected override async Task OnInitializedAsync()
     {
-        public string IdServicio { get; set; }
-        public string NombreCliente { get; set; }
-        public string Servicio { get; set; }
-        public DateTime Fecha { get; set; }
-        public decimal Monto { get; set; }
+        clientes = await clienteService.Listar(c => c.IdCliente > 0);
     }
 
-    private List<HistorialModelo> Registros = new List<HistorialModelo>
+    public async Task Buscar()
     {
-        new HistorialModelo { IdServicio = "S001", NombreCliente = "Pedro Soto", Servicio = "Impresión a Color (100 pág)", Fecha = new DateTime(2025, 10, 15), Monto = 750.00m },
-        new HistorialModelo { IdServicio = "S002", NombreCliente = "Ana López", Servicio = "Diseño de Flyer", Fecha = new DateTime(2025, 10, 20), Monto = 1200.00m },
-        new HistorialModelo { IdServicio = "S003", NombreCliente = "Marcos Peña", Servicio = "Fotocopia B/N", Fecha = new DateTime(2025, 11, 01), Monto = 50.00m }
-    };
-
-    private List<HistorialModelo> RegistrosHistorial => AplicarFiltroYBusqueda();
-
-    private List<HistorialModelo> AplicarFiltroYBusqueda()
-    {
-        var lista = Registros.AsEnumerable();
-
-        if (!string.IsNullOrWhiteSpace(TerminoBusqueda))
+        if (ValorFiltro.Trim() != "")
         {
-            var termino = TerminoBusqueda.ToLower();
-            lista = lista.Where(r => r.NombreCliente.ToLower().Contains(termino) ||
-                                     r.Servicio.ToLower().Contains(termino) ||
-                                     r.IdServicio.ToLower().Contains(termino));
+            if (Filtro == nameof(Clientes.Nombres)) clientes = await clienteService.Listar(c => c.Nombres.ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == nameof(Clientes.Cedula)) clientes = await clienteService.Listar(c => c.Cedula.ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == nameof(Clientes.Telefono)) clientes = await clienteService.Listar(c => c.Telefono.ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == nameof(Clientes.Correo)) clientes = await clienteService.Listar(c => c.Correo.ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == nameof(Clientes.IdCliente) && int.TryParse(ValorFiltro, out var Id)) clientes = await clienteService.Listar(c => c.IdCliente == Id);
         }
-
-        // Aquí iría la lógica de filtrado por FiltroSeleccionado si se implementa.
-        return lista.ToList();
     }
 
-    private void Buscar()
-    {
-        StateHasChanged();
-    }
-
-    private void VerDetalle(string id)
-    {
-        // Redirige a una página de detalle del servicio
-        Console.WriteLine($"Navegando al detalle del servicio: {id}");
-        // NavigationManager.NavigateTo($"/detalle-servicio/{id}");
-    }
+    // private void VerDetalle(int id)
+    // {
+    //     // Redirige a una página de detalle del servicio
+    //     Console.WriteLine($"Navegando al detalle del servicio: {id}");
+    //     // NavigationManager.NavigateTo($"/detalle-servicio/{id}");
+    // }
 
     private void Volver()
     {

@@ -206,14 +206,16 @@
         cliente.Cedula = CedulaRecibida;
         cliente.Correo = CorreoRecibido;
         cliente.Telefono = TelefonoRecibido;
-        cliente.Fecha = DateTime.UtcNow;
+        cliente.Fecha = DateTime.Now;
         var creado = await clienteService.Guardar(cliente);
         if (creado)
         {
             Turnos turno = new Turnos();
             turno.IdCliente = cliente.IdCliente;
             turno.NumTurno = codigoTurno;
-      
+            turno.Fecha = DateTime.Now;
+            await turnoService.Guardar(turno);
+
         }
 
     }
