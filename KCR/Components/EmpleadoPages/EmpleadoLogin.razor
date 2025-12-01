@@ -3,6 +3,13 @@
 
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Identity
+@using KCR.Data // Asegúrate de que este namespace contenga ApplicationUser
+@using KCR.Services // Si definiste constantes de roles aquí (Recomendado)
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
 <div class="login-panel">
     <h2 class="welcome-title">Bienvenidos/as</h2>
 
@@ -16,6 +23,11 @@
             <label class="required">Clave:</label>
             <input type="password" placeholder="********" @bind="clave" class="styled-input" />
         </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="text-danger error-message">@errorMessage</div>
+        }
     </div>
 
     <div class="login-action-buttons">
@@ -28,18 +40,61 @@
     // Variables de estado del formulario
     private string usuario { get; set; } = string.Empty;
     private string clave { get; set; } = string.Empty;
+    private string? errorMessage;
+
+    // Constante del rol a verificar (ajusta si usas otro nombre de rol)
+    // Asumo que tienes una constante llamada EmployeeRole en tu IdentitySeeder.
+    private const string EmpleadoRole = "Empleado";
 
     // Métodos del formulario
     private void LimpiarFormulario()
     {
         usuario = string.Empty;
         clave = string.Empty;
-        StateHasChanged();
+        errorMessage = null;
     }
 
-    private void IniciarSesion()
+    private async Task IniciarSesion()
     {
-        // Lógica de inicio de sesión
-        Console.WriteLine($"Intentando iniciar sesión con Usuario: {usuario}");
+        errorMessage = null;
+
+        // 1. Intentar iniciar sesión con Identity
+        var result = await SignInManager.PasswordSignInAsync(
+            usuario,
+            clave,
+            isPersistent: false, // Puedes cambiar a true si quieres recordar la sesión
+            lockoutOnFailure: false); // Bloquear cuenta después de N intentos fallidos
+
+        if (result.Succeeded)
+        {
+            // 2. Autenticación exitosa: Verificar el rol (Empleado)
+            var user = await SignInManager.UserManager.FindByEmailAsync(usuario);
+
+            if (user != null && await SignInManager.UserManager.IsInRoleAsync(user, EmpleadoRole))
+            {
+                // 3. Éxito: Redirigir al dashboard de empleados
+                Navigation.NavigateTo("/turnos/dashboard", forceLoad: true);
+            }
+            else
+            {
+                // 4. Fallo de rol: Cerrar sesión inmediatamente (si fue exitosa)
+                await SignInManager.SignOutAsync();
+                errorMessage = "Acceso denegado. Este usuario no es un empleado autorizado.";
+            }
+        }
+        else if (result.IsLockedOut)
+        {
+            errorMessage = "La cuenta del usuario ha sido bloqueada. Intente de nuevo más tarde.";
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            // Opcional: Manejar 2FA
+            errorMessage = "Requiere autenticación de dos factores.";
+        }
+        else
+        {
+            // 5. Fallo general: Credenciales inválidas
+            errorMessage = "Credenciales inválidas. Verifique su usuario y clave.";
+        }
     }
 }
