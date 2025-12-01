@@ -1,0 +1,168 @@
+﻿@page "/empleado/{Area}"
+@layout ClientLayout
+@inherits OwningComponentBase<TurnoService> // Para inyectar servicios en Blazor Server/WASM
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="employee-queue-container">
+
+    <div class="queue-card-wrapper">
+        <div class="queue-card">
+            <div class="card-header">
+                COLA ÁREA DE @Area.ToUpper()
+            </div>
+
+            <table class="queue-table">
+                <thead>
+                    <tr>
+                        <th>NOMBRE</th>
+                        <th>WHATSAPP</th>
+                        <th>TURNO</th>
+                        <th>COLA</th>
+                        <th>ATENDER</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var turno in TurnosEnEspera.OrderBy(t => t.ColaID))
+                    {
+                        <tr key="@turno.TurnoID">
+                            <td>@turno.NombreCliente</td>
+                            <td>@turno.WhatsApp</td>
+                            <td>@turno.NumeroTurno</td>
+                            <td>@turno.ColaID</td>
+                            <td>
+                                <span class="attend-icon" @onclick="() => AtenderCliente(turno.TurnoID)">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    @if (TurnosEnEspera.Count == 0)
+                    {
+                        <tr><td colspan="5" class="no-data">No hay turnos en espera.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="action-buttons-wrapper">
+        <button class="action-button-large previous" disabled>
+            LLAMAR ANTERIOR
+        </button>
+        <button class="action-button-large next" @onclick="LlamarSiguiente" disabled="@(TurnosEnEspera.Count == 0)">
+            LLAMAR SIGUIENTE
+        </button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string Area { get; set; } = "DISEÑO Y EDICIÓN";
+
+    private List<Turno> TurnosEnEspera { get; set; } = new List<Turno>();
+    private System.Timers.Timer? _queueTimer;
+    private const int POLL_INTERVAL_MS = 10000; // 10 segundos para actualizar la cola
+
+    // Propiedad para acceder al TurnoService inyectado (Simulación)
+    // En tu proyecto real, esto debe ser una inyección válida.
+    // private TurnoService TurnoService => ServiceProvider.GetRequiredService<TurnoService>();
+
+    // --- SIMULACIÓN DEL MODELO DE DATOS (REEMPLAZAR POR TU MODELO REAL) ---
+    public class Turno
+    {
+        public string TurnoID { get; set; } = Guid.NewGuid().ToString().Substring(0, 8);
+        public string NombreCliente { get; set; } = "Cliente Demo";
+        public string WhatsApp { get; set; } = "000-000-0000";
+        public string NumeroTurno { get; set; } = "DE-M-01";
+        public int ColaID { get; set; } = 1;
+        public string PuestoAtencion { get; set; } = "PUESTO 3";
+    }
+    // --------------------------------------------------------------------------
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTurnos();
+
+        // Inicializar y comenzar el Timer para Polling
+        _queueTimer = new System.Timers.Timer(POLL_INTERVAL_MS);
+        _queueTimer.Elapsed += async (sender, e) => await OnQueueTimerElapsed();
+        _queueTimer.AutoReset = true;
+        _queueTimer.Enabled = true;
+    }
+
+    private async Task OnQueueTimerElapsed()
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadTurnos();
+            StateHasChanged(); // Forzar la actualización de la interfaz
+        });
+    }
+
+    private async Task LoadTurnos()
+    {
+        try
+        {
+            // Lógica real: TurnosEnEspera = await TurnoService.GetTurnosEnEsperaAsync(Area);
+
+            // SIMULACIÓN DE DATOS (QUITAR EN PRODUCCIÓN)
+            TurnosEnEspera = GetSimulatedTurnos(Area);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar turnos: {ex.Message}");
+        }
+    }
+
+    private async Task LlamarSiguiente()
+    {
+        if (TurnosEnEspera.Count == 0) return;
+
+        var turnoACtualizar = TurnosEnEspera.OrderBy(t => t.ColaID).First();
+
+        // Lógica real: await TurnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "Llamado", "Puesto Asignado");
+
+        // Forzamos la recarga inmediata para que el turno desaparezca de la lista
+        await LoadTurnos();
+        StateHasChanged();
+    }
+
+    private async Task AtenderCliente(string turnoId)
+    {
+        // 1. Llama al servicio para finalizar el turno y crear el registro de prefactura.
+        // Lógica real: await TurnoService.FinalizarTurnoYCrearPrefacturaAsync(turnoId);
+
+        // 2. Redirección inmediata a la pantalla de prefactura
+        NavigationManager.NavigateTo($"/prefactura/{turnoId}");
+    }
+
+    // --- LIMPIEZA ---
+    public new void Dispose()
+    {
+        _queueTimer?.Dispose();
+        // base.Dispose();
+    }
+
+    // --- FUNCIÓN DE SIMULACIÓN (QUITA ESTO EN PRODUCCIÓN) ---
+    private List<Turno> GetSimulatedTurnos(string area)
+    {
+        // Esta lista simula los datos que vendrían de la DB.
+        return area.ToUpper() switch
+        {
+            "DISEÑO Y EDICIÓN" => new List<Turno>
+            {
+                new Turno { NombreCliente = "Jose García", NumeroTurno = "DE-M-01", ColaID = 1 },
+                new Turno { NombreCliente = "Carla Pérez", NumeroTurno = "DE-FM-01", ColaID = 2 },
+            },
+            "SERVICIO EXPRESS" => new List<Turno>
+            {
+                new Turno { NombreCliente = "Raúl Blanco", NumeroTurno = "SE-C-01", ColaID = 1 },
+                new Turno { NombreCliente = "Laura Rivas", NumeroTurno = "SE-I-02", ColaID = 2 }
+            },
+            _ => new List<Turno>()
+        };
+    }
+}

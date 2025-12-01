@@ -1,0 +1,132 @@
+﻿/* --- CONFIGURACIÓN DE FUENTE (Asegúrate que Lato esté cargada en ClientLayout.razor.css) --- */
+
+/* --- CONTENEDOR PRINCIPAL: CAMBIO DE FONDO A GRIS OSCURO --- */
+.employee-queue-container {
+    background-color: none; /* Fondo Gris Oscuro */
+    color: white;
+    font-family: 'Lato', sans-serif;
+    padding: inherit;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* El ClientLayout ya tiene el header, así que eliminamos el header-bar de aquí */
+
+/* --- COLA CARD: Centrado en el nuevo contenedor --- */
+.queue-card-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.queue-card {
+    background-color: white; /* FONDO DE LA TABLA A BLANCO */
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1200px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+    background-color: #FFAA00;
+    color: white;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* --- TABLA --- */
+.queue-table {
+    width: 100%;
+    border-collapse: collapse; /* CAMBIO CLAVE: Hace que los bordes de las celdas se fusionen */
+    /* border-spacing: 0 5px; <-- ELIMINADO para eliminar el espacio */
+    color: #333; /* Texto de la tabla a negro/gris oscuro */
+}
+
+    .queue-table th, .queue-table td {
+        padding: 12px 30px;
+        text-align: left;
+        font-size: 16px;
+    }
+
+    .queue-table th {
+        color: #F98700;
+        font-weight: 700;
+        border-bottom: 2px solid #F98700;
+        text-transform: uppercase;
+        padding: 12px 15px;
+        text-align: left;
+    }
+    .queue-table {
+    width: 100%;
+    border-collapse: collapse; /* CAMBIO CLAVE: Hace que los bordes de las celdas se fusionen */
+    /* border-spacing: 0 5px; <-- ELIMINADO para eliminar el espacio */
+    color: #333; /* Texto de la tabla a negro/gris oscuro */
+}
+
+
+    /* Filas de datos */
+    .queue-table tbody tr {
+        background-color: #f5f5f5; /* Fondo de fila muy claro dentro del blanco */
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: background-color 0.2s;
+    }
+
+        .queue-table tbody tr:hover {
+            background-color: #e0e0e0; /* Pequeño hover para interactividad */
+        }
+
+.no-data {
+    text-align: center;
+    font-style: italic;
+    color: #aaa;
+}
+
+/* Estilo para la columna de ATENDER (ícono) */
+.attend-icon {
+    cursor: pointer;
+    color: #00A300; /* Verde más oscuro para mejor contraste en fondo blanco */
+    font-size: 24px;
+    transition: transform 0.2s;
+}
+
+    .attend-icon:hover {
+        transform: scale(1.1);
+        color: #00CC00;
+    }
+
+/* --- BOTONES DE ACCIÓN (Mantener al lado) --- */
+.action-buttons-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.action-button-large {
+    background-color: #FFAA00;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+    border: 3px solid #F98700;
+    min-width: 250px;
+}
+
+    .action-button-large:hover:not(:disabled) {
+        background-color: #F98700;
+    }
+
+    .action-button-large:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
