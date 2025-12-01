@@ -1,7 +1,7 @@
 ﻿@page "/prefactura/{TurnoId}"
 @layout ClientLayout
-@inherits OwningComponentBase<TurnoService> 
 @inject NavigationManager NavigationManager
+@inject TurnoService turnoService
 @rendermode InteractiveServer
 
 <div class="prefactura-container">
@@ -19,7 +19,7 @@
     {
         <div class="prefactura-grid">
             
-            {{!-- COLUMNA IZQUIERDA: DATOS DEL CLIENTE Y RESUMEN --}}
+            <!-- COLUMNA IZQUIERDA: DATOS DEL CLIENTE Y RESUMEN -->
             <div class="client-details-card">
                 <h2 class="section-title">Datos del Cliente</h2>
                 <div class="data-group">
@@ -43,15 +43,15 @@
                     <h3>RESUMEN DE COBRO</h3>
                     <div class="summary-item">
                         <span>Subtotal:</span>
-                        <span>@Subtotal.ToString("C2")</span>
+                        <span>@Subtotal.ToString("C2", culturaDO)</span>
                     </div>
                     <div class="summary-item">
                         <span>ITBIS (18%):</span>
-                        <span>@ITBIS.ToString("C2")</span>
+                        <span>@ITBIS.ToString("C2", culturaDO)</span>
                     </div>
                     <div class="summary-item total">
                         <span>TOTAL A PAGAR:</span>
-                        <span>@Total.ToString("C2")</span>
+                        <span>@Total.ToString("C2", culturaDO)</span>
                     </div>
                 </div>
 
@@ -60,10 +60,8 @@
                 </button>
             </div>
 
-            {{!-- COLUMNA DERECHA: BÚSQUEDA Y DETALLE DE INVENTARIO --}}
+            <!-- COLUMNA DERECHA: BÚSQUEDA Y DETALLE DE INVENTARIO -->
             <div class="search-and-details-card">
-                
-                {{!-- 1. ÁREA DE BÚSQUEDA PROMINENTE --}}
                 <div class="search-area">
                     <input 
                         type="text" 
@@ -75,7 +73,6 @@
                     />
                 </div>
 
-                {{!-- 2. RESULTADOS DE BÚSQUEDA (Mini-Tabla de Inventario) --}}
                 <h2 class="search-results-title">Inventario / Servicios Disponibles</h2>
                 <div class="search-results-list">
                     <table class="items-table search-table">
@@ -101,7 +98,7 @@
                                 {
                                     <tr>
                                         <td>@result.Description</td>
-                                        <td class="col-price">@result.Price.ToString("C2")</td>
+                                        <td class="col-price">@result.Price.ToString("C2", culturaDO)</td>
                                         <td class="col-action">
                                             <button class="btn-add-item-small" @onclick="() => AddToPreFactura(result)">
                                                 <i class="fa-solid fa-plus"></i> AÑADIR
@@ -114,7 +111,6 @@
                     </table>
                 </div>
 
-                {{!-- 3. TABLA DE ARTÍCULOS DE LA PRE-FACTURA (Detalle Final) --}}
                 <h2 class="section-title items-title">Detalle de Pre-Factura (@PreFacturaItems.Count)</h2>
                 <div class="prefactura-items-table-wrapper">
                     <table class="items-table">
@@ -133,11 +129,10 @@
                                 <tr key="@item.Id">
                                     <td>@item.Description</td>
                                     <td class="col-cant">
-                                        {{!-- Editable: El empleado puede cambiar la cantidad aquí --}}
-                                        <input type="number" @bind="item.Quantity" @bind:event="onchange" min="1" class="qty-input" @* @onchange="StateHasChanged" *@ />
+                                        <input type="number" @bind="item.Quantity" @bind:event="onchange" min="1" class="qty-input" @* @onchange="StateHasChanged"  *@/>
                                     </td>
-                                    <td class="col-price">@item.Price.ToString("C2")</td>
-                                    <td class="col-total">@(item.Total.ToString("C2"))</td>
+                                    <td class="col-price">@item.Price.ToString("C2", culturaDO)</td>
+                                    <td class="col-total">@item.Total.ToString("C2", culturaDO)</td>
                                     <td><span class="delete-icon" @onclick="() => RemoveItem(item.Id)">×</span></td>
                                 </tr>
                             }
@@ -149,67 +144,28 @@
     }
 </div>
 
-
 @code {
-    // ... (El código C# de las propiedades, métodos de simulación de carga y búsqueda)
-    // Se mantiene igual, ya que solo cambiamos el HTML/CSS de la presentación de los resultados.
-
-    [Parameter]
-    public string TurnoId { get; set; } = string.Empty;
-
-    // Asumimos que TurnoService tiene métodos para buscar productos y cargar datos.
-    // private TurnoService TurnoService => ServiceProvider.GetRequiredService<TurnoService>();
+    [Parameter] public int TurnoId { get; set;}
 
     private bool isLoading = true;
     private bool isSearching = false;
     private TurnoData? clienteTurno;
-    
-    private string searchQuery = string.Empty;
-    private List<ProductItem> searchResults = new List<ProductItem>();
-    private List<ProductItem> PreFacturaItems = new List<ProductItem>();
 
-    // Propiedades Calculadas
+    private string searchQuery = string.Empty;
+    private List<ProductItem> searchResults = new();
+    private List<ProductItem> PreFacturaItems = new();
+
+    private readonly System.Globalization.CultureInfo culturaDO = new("es-DO");
+
+    // Propiedades calculadas
     private decimal Subtotal => PreFacturaItems.Sum(i => i.Total);
     private decimal ITBIS => Subtotal * 0.18M; 
     private decimal Total => Subtotal + ITBIS;
 
-    // --- MODELOS DE DATOS (REEMPLAZAR POR TUS CLASES REALES) ---
-    public class TurnoData
-    {
-        public string TurnoID { get; set; } = string.Empty;
-        public string NumeroTurno { get; set; } = string.Empty;
-        public string NombreCliente { get; set; } = string.Empty;
-        public string WhatsApp { get; set; } = string.Empty;
-        public string Servicio { get; set; } = string.Empty;
-    }
-
-    public class ProductItem
-    {
-        public Guid Id { get; set; } = Guid.NewGuid(); // ID único para la línea de pre-factura
-        public int ProductId { get; set; } // ID del producto/servicio en la DB
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 1;
-        public decimal Price { get; set; }
-        public decimal Total => Quantity * Price;
-    }
-    // ----------------------------------------------------
-
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        
-        // SIMULACIÓN DE CARGA DE DATOS (QUITAR EN PRODUCCIÓN)
-        await Task.Delay(500); 
-        clienteTurno = new TurnoData
-        {
-            TurnoID = TurnoId,
-            NumeroTurno = "DE-M-01",
-            NombreCliente = "Jose García",
-            WhatsApp = "809-555-1234",
-            Servicio = "Diseño de Tarjeta de Presentación"
-        };
-        // FIN SIMULACIÓN
-
+        // clienteTurno = await turnoService.Buscar(TurnoId); 
         isLoading = false;
     }
 
@@ -217,65 +173,43 @@
     {
         if (string.IsNullOrWhiteSpace(searchQuery) || searchQuery.Length < 3)
         {
-            searchResults = new List<ProductItem>();
+            searchResults = new();
             StateHasChanged();
             return;
         }
 
         isSearching = true;
         StateHasChanged();
-        
-        // SIMULACIÓN DE BÚSQUEDA (QUITAR EN PRODUCCIÓN)
-        await Task.Delay(300);
-        searchResults = SimulateSearch(searchQuery);
-        // FIN SIMULACIÓN
+
+        // searchResults = await turnoService.Buscar(searchQuery); // llamada real al servicio
 
         isSearching = false;
         StateHasChanged();
     }
 
-    private List<ProductItem> SimulateSearch(string query)
-    {
-        var lowerQuery = query.ToLower();
-        var allProducts = new List<ProductItem>
-        {
-            new ProductItem { ProductId = 101, Description = "Impresión Carta B/N (Unidad)", Price = 5.00M, Quantity = 1 },
-            new ProductItem { ProductId = 102, Description = "Impresión Carta a Color (Unidad)", Price = 15.00M, Quantity = 1 },
-            new ProductItem { ProductId = 201, Description = "Diseño Logo Básico", Price = 1500.00M, Quantity = 1 },
-            new ProductItem { ProductId = 301, Description = "Vinil Adhesivo Mate 12x18 (Pulg)", Price = 75.00M, Quantity = 1 },
-            new ProductItem { ProductId = 302, Description = "Banner Gigantografía (M2)", Price = 350.00M, Quantity = 1 },
-        };
-        
-        return allProducts.Where(p => p.Description.ToLower().Contains(lowerQuery)).ToList();
-    }
-
     private void AddToPreFactura(ProductItem item)
     {
-        // 1. Clonar el item del resultado de búsqueda con Qty=1
         var existingItem = PreFacturaItems.FirstOrDefault(i => i.ProductId == item.ProductId);
 
         if (existingItem != null)
         {
-            // Si ya existe, solo incrementa la cantidad
             existingItem.Quantity++;
         }
         else
         {
-            // Si no existe, añade el nuevo artículo
             var newItem = new ProductItem
             {
-                Id = Guid.NewGuid(), 
+                Id = Guid.NewGuid(),
                 ProductId = item.ProductId,
                 Description = item.Description,
                 Price = item.Price,
-                Quantity = 1 
+                Quantity = 1
             };
             PreFacturaItems.Add(newItem);
         }
-        
-        // 3. Limpiar la búsqueda y forzar recálculo del total
+
         searchQuery = string.Empty;
-        searchResults = new List<ProductItem>();
+        searchResults = new();
         StateHasChanged();
     }
 
@@ -287,8 +221,28 @@
 
     private void FinalizarPrefactura()
     {
-        // Lógica para guardar la lista final de Items y los totales
-        Console.WriteLine($"Factura Finalizada: {Total.ToString("C2")} para el Turno {TurnoId}");
-        // NavigationManager.NavigateTo($"/caja/{TurnoId}");
+        // Aquí guardas en DB o envías a otra pantalla
+        Console.WriteLine($"Factura Finalizada: {Total.ToString("C2", culturaDO)} para el Turno {TurnoId}");
+        NavigationManager.NavigateTo($"/caja/{TurnoId}");
+    }
+
+    // Modelos
+    public class TurnoData
+    {
+        public string TurnoID { get; set; } = string.Empty;
+        public string NumeroTurno { get; set; } = string.Empty;
+        public string NombreCliente { get; set; } = string.Empty;
+        public string WhatsApp { get; set; } = string.Empty;
+        public string Servicio { get; set; } = string.Empty;
+    }
+
+    public class ProductItem
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public int ProductId { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+        public decimal Price { get; set; }
+        public decimal Total => Quantity * Price;
     }
 }
