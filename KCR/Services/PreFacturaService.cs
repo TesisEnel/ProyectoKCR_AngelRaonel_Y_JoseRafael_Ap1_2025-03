@@ -38,19 +38,15 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
     public async Task<bool> Modificar(PreFacturas preFactura)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        var original = await contexto.preFacturas
-            .Include(p => p.PreFacturaDetalles)
+
+        var detallesOriginales = await contexto.preFacturaDetalles
+            .Where(d => d.IdPreFactura == preFactura.IdPreFactura)
             .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.IdPreFactura == preFactura.IdPreFactura);
+            .ToListAsync();
 
-        if (original == null) return false;
-
-        await AfectarExistencia(original.PreFacturaDetalles.ToArray(), TipoOperacion.Suma);
-
-        contexto.preFacturaDetalles.RemoveRange(original.PreFacturaDetalles);
-
-        contexto.Update(preFactura);
-
+        await AfectarExistencia(detallesOriginales.ToArray(), TipoOperacion.Suma);
+        contexto.preFacturaDetalles.RemoveRange(detallesOriginales);
+        contexto.preFacturas.Update(preFactura);
         await AfectarExistencia(preFactura.PreFacturaDetalles.ToArray(), TipoOperacion.Resta);
 
         return await contexto.SaveChangesAsync() > 0;
@@ -90,7 +86,10 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
     public async Task<List<Servicios>> ListarServicios()
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.servicios.Include(p => p.IdServicio).Where(s => s.IdServicio > 0).AsNoTracking().ToListAsync();
+        return await contexto.servicios
+            .Where(s => s.IdServicio > 0)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<List<Materiales>> ListarMateriales()

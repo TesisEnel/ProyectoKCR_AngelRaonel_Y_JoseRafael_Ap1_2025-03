@@ -1,22 +1,22 @@
 ﻿/* --- CONFIGURACIÓN DE FUENTE (Asegúrate que Lato esté cargada en ClientLayout.razor.css) --- */
 
-/* --- CONTENEDOR PRINCIPAL: CAMBIO DE FONDO A GRIS OSCURO --- */
+/* --- CONTENEDOR PRINCIPAL --- */
 .employee-queue-container {
-    background-color: none; /* Fondo Gris Oscuro */
-    color: white;
+    background-color: #f8f9fa; /* Fondo ligero para contraste */
+    color: #333;
     font-family: 'Lato', sans-serif;
-    padding: inherit;
+    padding: 20px;
     box-sizing: border-box;
-    position: relative;
 }
-
-/* El ClientLayout ya tiene el header, así que eliminamos el header-bar de aquí */
 
 /* --- COLA CARD: Centrado en el nuevo contenedor --- */
 .queue-card-wrapper {
     display: flex;
     justify-content: center;
     margin-top: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .queue-card {
@@ -39,19 +39,22 @@
     margin-bottom: 20px;
 }
 
+/* 🚩 LÓGICA DE SCROLLING: Solución para la tabla 
+   Esto le da una altura máxima y habilita la barra de desplazamiento. */
+.table-scroll-wrapper {
+    /* 60vh = 60% de la altura de la pantalla, dejando espacio para los botones */
+    max-height: 60vh;
+    /* CLAVE: Habilita el desplazamiento vertical si el contenido excede el max-height */
+    overflow-y: auto;
+    padding-right: 15px; /* Espacio para que el scroll se vea mejor */
+}
+
 /* --- TABLA --- */
 .queue-table {
     width: 100%;
-    border-collapse: collapse; /* CAMBIO CLAVE: Hace que los bordes de las celdas se fusionen */
-    /* border-spacing: 0 5px; <-- ELIMINADO para eliminar el espacio */
-    color: #333; /* Texto de la tabla a negro/gris oscuro */
+    border-collapse: collapse;
+    color: #333;
 }
-
-    .queue-table th, .queue-table td {
-        padding: 12px 30px;
-        text-align: left;
-        font-size: 16px;
-    }
 
     .queue-table th {
         color: #F98700;
@@ -60,25 +63,28 @@
         text-transform: uppercase;
         padding: 12px 15px;
         text-align: left;
+        /* CLAVE PARA EL SCROLL: Hace el encabezado fijo */
+        position: sticky;
+        top: 0;
+        background-color: white; /* Asegura que el encabezado no sea transparente */
+        z-index: 10;
     }
-    .queue-table {
-    width: 100%;
-    border-collapse: collapse; /* CAMBIO CLAVE: Hace que los bordes de las celdas se fusionen */
-    /* border-spacing: 0 5px; <-- ELIMINADO para eliminar el espacio */
-    color: #333; /* Texto de la tabla a negro/gris oscuro */
-}
 
+    .queue-table td {
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 16px;
+        border-bottom: 1px solid #eee; /* Separador sutil */
+    }
 
     /* Filas de datos */
     .queue-table tbody tr {
-        background-color: #f5f5f5; /* Fondo de fila muy claro dentro del blanco */
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        background-color: white;
         transition: background-color 0.2s;
     }
 
         .queue-table tbody tr:hover {
-            background-color: #e0e0e0; /* Pequeño hover para interactividad */
+            background-color: #ffe0b2; /* Tono naranja claro en hover */
         }
 
 .no-data {
@@ -87,20 +93,23 @@
     color: #aaa;
 }
 
-/* Estilo para la columna de ATENDER (ícono) */
-.attend-icon {
-    cursor: pointer;
-    color: #00A300; /* Verde más oscuro para mejor contraste en fondo blanco */
-    font-size: 24px;
-    transition: transform 0.2s;
+/* Botón de Atender */
+.btn-attend {
+    background-color: #00A300 !important; /* Verde */
+    border-color: #00A300 !important;
+    color: white !important;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: 700;
 }
 
-    .attend-icon:hover {
-        transform: scale(1.1);
-        color: #00CC00;
+    .btn-attend:hover {
+        background-color: #00CC00 !important;
+        border-color: #00CC00 !important;
     }
 
-/* --- BOTONES DE ACCIÓN (Mantener al lado) --- */
+
+/* --- BOTONES DE ACCIÓN (Llamar) --- */
 .action-buttons-wrapper {
     display: flex;
     justify-content: center;
@@ -130,3 +139,15 @@
         cursor: not-allowed;
         opacity: 0.6;
     }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .action-buttons-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .action-button-large {
+        min-width: 100%;
+    }
+}

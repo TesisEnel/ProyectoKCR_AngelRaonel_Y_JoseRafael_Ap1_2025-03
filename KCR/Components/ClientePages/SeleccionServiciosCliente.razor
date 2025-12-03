@@ -2,6 +2,10 @@
 
 @page "/seleccion-servicio"
 
+@using KCR.Models
+@using KCR.Services
+@using Microsoft.AspNetCore.Components
+
 @inject ClienteService clienteService
 @inject TurnoService turnoService
 @inject NavigationManager navigationManager
@@ -30,24 +34,27 @@
 
             <button class="btn-servicio btn-diseno" @onclick="() => AbrirModal(false)">
                 Diseño y Edición
+                <span class="icon-suffix">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round">
+                        <path d="M12 20V4M18 14L12 20M12 20L6 14" />
+                    </svg>
+                </span>
             </button>
         </div>
 
         <button class="btn-volver" @onclick="IrAtras">VOLVER</button>
     </div>
 
-    @if (mostrarModalExpres || mostrarModalDiseno)
+    <!-- Modal para Servicio Exprés -->
+    @if (mostrarModalExpres)
     {
         <div class="modal-backdrop" @onclick="CerrarModal">
             <div class="modal-window" @onclick:stopPropagation>
-
                 <div class="modal-header">
                     <div class="header-logo">
                         <img src="/Img-Vector/logoKCR.png" alt="KCR" height="30" />
                     </div>
-                    <h3 class="header-title">
-                        @(mostrarModalExpres ? "Servicio Exprés" : "DISEÑO Y EDICION")
-                    </h3>
+                    <h3 class="header-title">Servicio Exprés</h3>
                     <button class="btn-close-x" @onclick="CerrarModal">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round">
                             <path d="M18 6L6 18M6 6l12 12" />
@@ -60,31 +67,55 @@
                     <div class="watermark-bg">
                         <img src="/Img-Vector/logoKCR.png" alt="" />
                     </div>
-
                     <div class="grid-botones">
-                        @if (mostrarModalExpres)
-                        {
-                            <button class="btn-grid" @onclick='() => ElegirServicio("COPIA")'>COPIA</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("IMPRESIONES")'>IMPRESIONES</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("ENCUADERNADO")'>ENCUADERNADO</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("ESCANER")'>ESCANER</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS PDF")'>IMPRESION PLANOS PDF</button>
-                        }
-                        else
-                        {
-                            <button class="btn-grid" @onclick='() => ElegirServicio("EDICION DE DISEÑO")'>EDICION DE DISEÑO</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("DISEÑO SUBLIMACION")'>DISEÑO SUBLIMACION</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("TARJETAS")'>TARJETAS DE PRESENTACION</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("FLYERS")'>FLYERS/MONTADO</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
-                            <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS AUTOCAD")'>PLANOS AUTOCAD</button>
-                        }
+                        <button class="btn-grid" @onclick='() => ElegirServicio("COPIA")'>COPIA</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("IMPRESIONES")'>IMPRESIONES</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("ENCUADERNADO")'>ENCUADERNADO</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("ESCANER")'>ESCANER</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS PDF")'>IMPRESION PLANOS PDF</button>
                     </div>
                 </div>
             </div>
         </div>
     }
+
+    <!-- Modal para Servicio de Diseño -->
+    @if (mostrarModalDiseno)
+    {
+        <div class="modal-backdrop" @onclick="CerrarModal">
+            <div class="modal-window" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="header-logo">
+                        <img src="/Img-Vector/logoKCR.png" alt="KCR" height="30" />
+                    </div>
+                    <h3 class="header-title">DISEÑO Y EDICION</h3>
+                    <button class="btn-close-x" @onclick="CerrarModal">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <h4 class="subtitulo-servicios">SERVICIOS:</h4>
+                    <div class="watermark-bg">
+                        <img src="/Img-Vector/logoKCR.png" alt="" />
+                    </div>
+                    <div class="grid-botones">
+                        <button class="btn-grid" @onclick='() => ElegirServicio("EDICION DE DISEÑO")'>EDICION DE DISEÑO</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("DISEÑO SUBLIMACION")'>DISEÑO SUBLIMACION</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("TARJETAS")'>TARJETAS DE PRESENTACION</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("FLYERS")'>FLYERS/MONTADO</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("SERVICIOS MULTIPLES")'>SERVICIOS MULTIPLES</button>
+                        <button class="btn-grid" @onclick='() => ElegirServicio("PLANOS AUTOCAD")'>PLANOS AUTOCAD</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modal Ticket -->
     @if (mostrarTicket)
     {
         <div class="modal-backdrop" @onclick="CerrarModal">
@@ -130,45 +161,55 @@
 </div>
 
 @code {
-    // 1. CAPTURA DE DATOS DE LA URL
-    [SupplyParameterFromQuery(Name = "nombreCliente")]
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "IdClienteRecibido")]
+    public int IdClienteRecibido { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "NombreRecibido")]
     public string? NombreRecibido { get; set; }
 
-    [SupplyParameterFromQuery(Name = "telefono")]
-    public string? TelefonoRecibido { get; set; }
-
-    [SupplyParameterFromQuery(Name = "cedula")]
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "CedulaRecibida")]
     public string? CedulaRecibida { get; set; }
 
-    [SupplyParameterFromQuery(Name = "correo")]
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "TelefonoRecibido")]
+    public string? TelefonoRecibido { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "CorreoRecibido")]
     public string? CorreoRecibido { get; set; }
 
-    // Propiedades para mostrar (con valores por defecto si vienen vacíos)
-    public string NombreParaMostrar => string.IsNullOrEmpty(NombreRecibido) ? "Cliente" : NombreRecibido;
+
+    // Propiedades para mostrar
+    public string NombreParaMostrar => string.IsNullOrWhiteSpace(NombreRecibido) ? "Cliente" : NombreRecibido;
     public string TelefonoParaMostrar => string.IsNullOrEmpty(TelefonoRecibido) ? "---" : TelefonoRecibido;
 
-    // 2. VARIABLES DE ESTADO
+    // Estados de la UI
     private bool mostrarModalExpres = false;
     private bool mostrarModalDiseno = false;
-    private bool mostrarTicket = false; // Nuevo estado para el ticket final
+    private bool mostrarTicket = false;
 
-    // Datos para el Ticket
+    // Datos del Turno
     private string areaSeleccionada = "";
     private string servicioSeleccionado = "";
     private string codigoTurno = "";
 
-    // 3. MÉTODOS
+    // MÉTODOS
 
     private void AbrirModal(bool esExpres)
     {
         if (esExpres)
         {
             mostrarModalExpres = true;
+            mostrarModalDiseno = false;
             areaSeleccionada = "SERVICIO EXPRESS";
         }
         else
         {
             mostrarModalDiseno = true;
+            mostrarModalExpres = false;
             areaSeleccionada = "DISEÑO Y EDICIÓN";
         }
     }
@@ -180,20 +221,16 @@
         mostrarTicket = false;
     }
 
-    // Este método se llama cuando el usuario elige "COPIA", "IMPRESIONES", etc.
     private void ElegirServicio(string servicio)
     {
         servicioSeleccionado = servicio;
 
-        // Generamos un código ficticio basado en el área y el servicio
-        // Ej: SE (Servicio Express) - C (Copia) - 01 (Random)
         string prefijoArea = areaSeleccionada == "SERVICIO EXPRESS" ? "SE" : "DE";
-        string prefijoServicio = servicio.Substring(0, 1);
+        string prefijoServicio = (servicio == "SERVICIOS MULTIPLES") ? "M" : servicio.Substring(0, 1);
         int numeroRandom = new Random().Next(1, 99);
 
         codigoTurno = $"{prefijoArea}-{prefijoServicio}-{numeroRandom:D2}";
 
-        // Cerramos los menús y mostramos el ticket
         mostrarModalExpres = false;
         mostrarModalDiseno = false;
         mostrarTicket = true;
@@ -201,25 +238,58 @@
 
     private async Task GenerarTicketFinal()
     {
-        Clientes cliente = new Clientes();
-        cliente.Nombres = NombreRecibido;
-        cliente.Cedula = CedulaRecibida;
-        cliente.Correo = CorreoRecibido;
-        cliente.Telefono = TelefonoRecibido;
-        cliente.Fecha = DateTime.Now;
-        var creado = await clienteService.Guardar(cliente);
-        if (creado)
+        // Creamos el cliente con los datos recibidos y el ID que nos pasó la pantalla anterior
+        var cliente = new Clientes
         {
-            Turnos turno = new Turnos();
-            turno.IdCliente = cliente.IdCliente;
-            turno.NumTurno = codigoTurno;
-            turno.Fecha = DateTime.Now;
-            await turnoService.Guardar(turno);
+            IdCliente = IdClienteRecibido,
+            Nombres = NombreRecibido,
+            Cedula = CedulaRecibida,
+            Telefono = TelefonoRecibido,
+            Correo = CorreoRecibido,
+            Fecha = DateTime.Now // Solo actualizamos la fecha de última interacción.
+        };
+        // Guardamos (esto actualizará la fecha si el cliente ya existe gracias al IdCliente)
+        var guardado = await clienteService.Guardar(cliente);
 
+        if (guardado)
+        {
+            // Si el cliente era nuevo (IdCliente 0) y fue insertado, necesitamos su nuevo ID.
+            // Si ya tenía ID, lo usamos directamente.
+            int idClienteFinal = cliente.IdCliente;
+
+            if (idClienteFinal == 0 && !string.IsNullOrEmpty(cliente.Cedula))
+            {
+                var clienteBuscado = await clienteService.BuscarPorCedula(cliente.Cedula);
+                if (clienteBuscado != null)
+                {
+                    idClienteFinal = clienteBuscado.IdCliente;
+                }
+            }
+
+            if (idClienteFinal > 0)
+            {
+                Turnos turno = new Turnos();
+                turno.IdCliente = idClienteFinal;
+                turno.NumTurno = codigoTurno;
+                turno.Fecha = DateTime.Now;
+                // Dejamos IdServicio nulo como solicitaste
+
+                await turnoService.Guardar(turno);
+
+                // Redirigir a inicio después de guardar
+                navigationManager.NavigateTo("/cliente");
+            }
+            else
+            {
+                Console.WriteLine("Error: No se pudo obtener el ID del cliente para el turno.");
+            }
         }
-
+        else
+        {
+            Console.WriteLine("Error al guardar el cliente.");
+        }
     }
-    //AP1kcr@#
+
     private void IrAtras()
     {
         navigationManager.NavigateTo("/cliente");

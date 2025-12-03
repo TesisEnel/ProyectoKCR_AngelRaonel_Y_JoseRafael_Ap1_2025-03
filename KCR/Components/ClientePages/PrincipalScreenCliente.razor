@@ -36,213 +36,179 @@
             </div>
 
             <div class="form-group">
-                <label class="required">Teléfono/WhatsApp:</label>
+                <label>Teléfono:</label>
                 <input type="text" placeholder="000-000-0000" @bind="telefono" class="styled-input" />
             </div>
-            
+
             <div class="form-group">
-                <label class="required">Correo (Opcional):</label>
-                <input type="text" placeholder="Ejemplo@kcr.com" @bind="correo" class="styled-input" />
+                <label>Correo Electrónico:</label>
+                <input type="email" placeholder="correo@ejemplo.com" @bind="correo" class="styled-input" />
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-outline" @onclick="ResetForm">Limpiar</button>
+                <button class="btn-solid" @onclick="GuardarYContinuarAsync" disabled="@IsSearching">Continuar</button>
             </div>
 
         </div>
-
-        <div class="action-buttons">
-            <button class="btn-outline" @onclick="LimpiarFormulario">BORRAR</button>
-            @if (isEditMode)
-            {
-                <button class="btn-outline" @onclick="CancelarEdicion">CANCELAR</button>
-                <button class="btn-solid" @onclick="GuardarClienteAsync" disabled="@isSaving">@((isSaving ? "GUARDANDO..." : "GUARDAR"))</button>
-            }
-            else
-            {
-                <button class="btn-solid" @onclick="ProcesarTurno">SIGUIENTE</button>
-            }
-        </div>
     </div>
-
 </div>
 
 @code {
-    @implements IDisposable
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int editingClienteId { get; set; } = 0; // ID del cliente si existe o se acaba de guardar
 
-    private string nombre { get; set; } = string.Empty;
-    private string cedula { get; set; } = string.Empty;
-    private string telefono { get; set; } = string.Empty;
-    private string correo { get; set; } = string.Empty;
-    private int currentImageIndex = 0;
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool isEditMode { get; set; } = false;
 
-    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-    private readonly List<string> carouselImages = new List<string>
-    {
+    // Campos del formulario
+    private string cedula = string.Empty;
+    private string nombre = string.Empty;
+    private string telefono = string.Empty;
+    private string correo = string.Empty;
+
+    // Estados de la UI
+    private bool IsSearching => isSaving; // Reutilizar el estado para deshabilitar botones
+    private bool isSaving = false;
+    private string? searchMessage = null;
+
+    // --- Carrusel (No se toca, solo para contexto) ---
+    private readonly string[] images = new[] {
         "/Img-Vector/Carrusel/carr1.png",
         "/Img-Vector/Carrusel/carr2.png",
         "/Img-Vector/Carrusel/carr3.png",
         "/Img-Vector/Carrusel/carr4.png",
         "/Img-Vector/Carrusel/carr5.png"
     };
+    private string currentImage = "/Img-Vector/Carrusel/carr1.png";
+    private int imageIndex = 0;
+    private Timer? _timer;
+    private CancellationTokenSource _cancellationTokenSource = new();
 
-    private string currentImage => carouselImages[currentImageIndex];
-
-    // New state for lookup/edit
-    private bool isEditMode = false;
-    private bool IsSearching = false;
-    private bool isSaving = false;
-    private string? searchMessage;
-    private int? editingClienteId;
-
-    protected override Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        _ = StartCarouselLoop();
-        return Task.CompletedTask;
+        _timer = new Timer(ChangeImage, null, 0, 5000); // Cambia cada 5 segundos
     }
 
-    private async Task StartCarouselLoop()
+    private void ChangeImage(object? state)
     {
-        var token = _cancellationTokenSource.Token;
-
-        while (!token.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(3000, token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-            currentImageIndex = (currentImageIndex + 1) % carouselImages.Count;
-
-            await InvokeAsync(StateHasChanged);
-        }
+        imageIndex = (imageIndex + 1) % images.Length;
+        currentImage = images[imageIndex];
+        InvokeAsync(StateHasChanged);
     }
 
-    private void LimpiarFormulario()
-    {
-        nombre = "";
-        cedula = "";
-        telefono = "";
-        correo = "";
-        isEditMode = false;
-        editingClienteId = null;
-        searchMessage = null;
-        StateHasChanged();
-    }
-
-    private async Task ProcesarTurno()
-    {
-        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
-        {
-            return;
-        }
-
-        await Task.Delay(1000);
-
-        var nombreCod = Uri.EscapeDataString(nombre);
-        var telCod = Uri.EscapeDataString(telefono);
-        var cedulacod = Uri.EscapeDataString(cedula);
-        var correocod = Uri.EscapeDataString(correo);
-
-        navigationManager.NavigateTo($"/seleccion-servicio?nombreCliente={nombreCod}&telefono={telCod}&cedula={cedulacod}&correo={correocod}");
-
-        LimpiarFormulario();
-    }
-
-    // --- New: search by cedula using existing service methods ---
+    // --- 1. LÓGICA DE BÚSQUEDA ---
     private async Task BuscarCedulaAsync()
     {
-        searchMessage = null;
         if (string.IsNullOrWhiteSpace(cedula))
         {
-            searchMessage = "Ingrese una cédula para buscar.";
-            return;
-        }
-
-        IsSearching = true;
-        isEditMode = false;
-        editingClienteId = null;
-
-        try
-        {
-            var cliente = await clienteservice.BuscarPorCedula(cedula.Trim());
-            if (cliente is null)
-            {
-                searchMessage = "No se encontró cliente con esa cédula.";
-                // Leave form as-is so user can create new
-            }
-            else
-            {
-                // populate form for editing using the existing Clientes model
-                nombre = cliente.Nombres ?? string.Empty;
-                telefono = cliente.Telefono ?? string.Empty;
-                correo = cliente.Correo ?? string.Empty;
-                editingClienteId = cliente.IdCliente;
-                isEditMode = true;
-                searchMessage = "Cliente encontrado. Puede editar y guardar.";
-            }
-        }
-        catch (Exception ex)
-        {
-            searchMessage = $"Error al buscar cliente: {ex.Message}";
-        }
-        finally
-        {
-            IsSearching = false;
-            StateHasChanged();
-        }
-    }
-
-    private void CancelarEdicion()
-    {
-        LimpiarFormulario();
-    }
-
-    private async Task GuardarClienteAsync()
-    {
-        if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(telefono))
-        {
-            searchMessage = "Nombre y teléfono son requeridos.";
+            searchMessage = "Por favor, ingrese un número de cédula para buscar.";
             return;
         }
 
         isSaving = true;
-        searchMessage = null;
+        searchMessage = "Buscando cliente...";
 
         try
         {
+            var clienteExistente = await clienteservice.BuscarPorCedula(cedula);
+
+            if (clienteExistente is not null)
+            {
+                // Cliente encontrado: precargar datos
+                editingClienteId = clienteExistente.IdCliente;
+                nombre = clienteExistente.Nombres;
+                telefono = clienteExistente.Telefono ?? string.Empty;
+                correo = clienteExistente.Correo ?? string.Empty;
+                isEditMode = true;
+                searchMessage = "Cliente encontrado. Confirme sus datos.";
+            }
+            else
+            {
+                // Cliente no encontrado: formulario en blanco (solo cédula prellenada)
+                editingClienteId = 0;
+                nombre = string.Empty;
+                telefono = string.Empty;
+                correo = string.Empty;
+                isEditMode = false;
+                searchMessage = "Cliente nuevo. Por favor, complete sus datos.";
+            }
+        }
+        catch (Exception ex)
+        {
+            searchMessage = $"Error al buscar: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    // --- 2. VALIDACIÓN ---
+    private bool ValidarFormulario()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            searchMessage = "El nombre es obligatorio.";
+            return false;
+        }
+        // Puedes agregar más validaciones aquí (ej. formato de cédula, correo)
+        return true;
+    }
+
+    // --- 3. GUARDAR Y CONTINUAR (Función principal) ---
+    private async Task GuardarYContinuarAsync()
+    {
+        if (!ValidarFormulario())
+        {
+            return;
+        }
+
+        isSaving = true;
+        searchMessage = "Guardando cliente...";
+
+        try
+        {
+            // 1. Preparamos el objeto Cliente
             var cliente = new Clientes
             {
-                IdCliente = editingClienteId ?? 0,
-                Cedula = string.IsNullOrWhiteSpace(cedula) ? null : cedula.Trim(),
-                Nombres = nombre,
-                Telefono = telefono,
-                Correo = correo,
-                Fecha = DateTime.UtcNow
+                IdCliente = editingClienteId,
+                Nombres = nombre.ToUpper(),
+                Cedula = string.IsNullOrWhiteSpace(cedula) ? null : cedula,
+                Telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono,
+                Correo = string.IsNullOrWhiteSpace(correo) ? null : correo,
+                Fecha = DateTime.UtcNow // Fecha de creación o última modificación
             };
 
+            // Simplificamos: Guardar actualiza la fecha en el modelo.
+
+            // 2. Guardamos o actualizamos en la base de datos
             var saved = await clienteservice.Guardar(cliente);
 
             if (saved)
             {
-                // Get fresh copy (and Id) from DB using existing service method
-                var persisted = await clienteservice.BuscarPorCedula(cliente.Cedula ?? string.Empty);
-                if (persisted is not null)
+                // Si guardamos un cliente nuevo (IdCliente=0), necesitamos el Id generado por la DB.
+                // Si guardamos un cliente existente (IdCliente > 0), ya tenemos el Id.
+                if (cliente.IdCliente == 0)
                 {
-                    editingClienteId = persisted.IdCliente;
-                    isEditMode = true;
-                    searchMessage = "Cliente guardado correctamente.";
+                    // Obtener copia fresca (con Id) desde la DB usando la Cédula
+                    var persisted = await clienteservice.BuscarPorCedula(cliente.Cedula ?? string.Empty);
+                    if (persisted is not null)
+                    {
+                        editingClienteId = persisted.IdCliente; // Obtenemos el nuevo ID
+                    }
                 }
-                else
-                {
-                    // Fallback: if persisted not found by cedula, but Guardar returned true, keep local id if set
-                    editingClienteId = cliente.IdCliente > 0 ? cliente.IdCliente : editingClienteId;
-                    isEditMode = true;
-                    searchMessage = "Cliente guardado correctamente.";
-                }
+
+                searchMessage = "Cliente guardado correctamente. Redirigiendo...";
+                // 3. Navegamos a la pantalla de selección de servicios, pasando los datos por Query String
+                NavegarAServicios();
             }
             else
             {
-                searchMessage = "No se pudo guardar el cliente.";
+                searchMessage = "No se pudo guardar el cliente. Intente de nuevo.";
             }
         }
         catch (Exception ex)
@@ -256,13 +222,38 @@
         }
     }
 
-    // --- 5. LIMPIEZA ---
+    private void NavegarAServicios()
+    {
+        // 4. Navegación: Pasamos IdCliente y los datos relevantes
+        var uri = navigationManager.GetUriWithQueryParameters("/seleccion-servicio", new Dictionary<string, object?>
+        {
+            { "IdClienteRecibido", editingClienteId },
+            { "NombreRecibido", nombre },
+            { "CedulaRecibida", cedula },
+            { "TelefonoRecibido", telefono },
+            { "CorreoRecibido", correo }
+        });
+
+        navigationManager.NavigateTo(uri);
+    }
+
+    // --- 4. LIMPIEZA / RESET ---
+    private void ResetForm()
+    {
+        editingClienteId = 0;
+        isEditMode = false;
+        cedula = string.Empty;
+        nombre = string.Empty;
+        telefono = string.Empty;
+        correo = string.Empty;
+        searchMessage = null;
+    }
+
+    // --- 5. LIMPIEZA DE RECURSOS ---
     public void Dispose()
     {
+        _timer?.Dispose();
         _cancellationTokenSource.Cancel();
         _cancellationTokenSource.Dispose();
     }
 }
-
-
-

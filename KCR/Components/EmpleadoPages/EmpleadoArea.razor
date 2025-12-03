@@ -2,48 +2,59 @@
 @layout ClientLayout
 @inherits OwningComponentBase<TurnoService> // Para inyectar servicios en Blazor Server/WASM
 @implements IDisposable
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
+@inject ClienteService ClienteService // Necesario para buscar los datos del cliente
 @rendermode InteractiveServer
 
 <div class="employee-queue-container">
 
     <div class="queue-card-wrapper">
         <div class="queue-card">
+            <!-- Título de la tarjeta de la cola -->
             <div class="card-header">
                 COLA ÁREA DE @Area.ToUpper()
+                @if (isLoading)
+                {
+                    <span class="loading-indicator">Cargando...</span>
+                }
             </div>
 
-            <table class="queue-table">
-                <thead>
-                    <tr>
-                        <th>NOMBRE</th>
-                        <th>WHATSAPP</th>
-                        <th>TURNO</th>
-                        <th>COLA</th>
-                        <th>ATENDER</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var turno in TurnosEnEspera.OrderBy(t => t.ColaID))
-                    {
-                        <tr key="@turno.TurnoID">
-                            <td>@turno.NombreCliente</td>
-                            <td>@turno.WhatsApp</td>
-                            <td>@turno.NumeroTurno</td>
-                            <td>@turno.ColaID</td>
-                            <td>
-                                <span class="attend-icon" @onclick="() => AtenderCliente(turno.TurnoID)">
-                                    <i class="fa-solid fa-user-check"></i>
-                                </span>
-                            </td>
+            <!-- 🚩 INICIO DEL CAMBIO: Contenedor Scrollable -->
+            <div class="table-scroll-wrapper">
+                <!-- Tabla de turnos en espera -->
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>NOMBRE</th>
+                            <th>WHATSAPP</th>
+                            <th>TURNO</th>
+                            <th>FECHA CREACIÓN</th>
+                            <th>ATENDER</th>
                         </tr>
-                    }
-                    @if (TurnosEnEspera.Count == 0)
-                    {
-                        <tr><td colspan="5" class="no-data">No hay turnos en espera.</td></tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var turno in TurnosEnEspera.OrderBy(t => t.TurnoID))
+                        {
+                            <tr key="@turno.TurnoID">
+                                <td>@turno.NombreCliente</td>
+                                <td>@turno.WhatsApp</td>
+                                <td>@turno.NumeroTurno</td>
+                                <td>@turno.FechaCreacion.ToString("hh:mm tt")</td>
+                                <td>
+                                    <button class="btn btn-success btn-sm btn-attend" @onclick="() => AtenderCliente(turno.TurnoID)">
+                                        Atender
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (TurnosEnEspera.Count == 0 && !isLoading)
+                        {
+                            <tr><td colspan="5" class="no-data">No hay turnos en espera.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- 🚩 FIN DEL CAMBIO: Cierre del Contenedor Scrollable -->
         </div>
     </div>
 
@@ -60,60 +71,106 @@
 
 @code {
     [Parameter]
-    public string Area { get; set; } = "DISEÑO Y EDICIÓN";
+    public string Area { get; set; } = "DISEÑO Y EDICIÓN"; // Valor por defecto
 
-    private List<Turno> TurnosEnEspera { get; set; } = new List<Turno>();
+    // Usamos el modelo combinado para la vista
+    private List<TurnoInfoEmpleado> TurnosEnEspera { get; set; } = new List<TurnoInfoEmpleado>();
     private System.Timers.Timer? _queueTimer;
-    private const int POLL_INTERVAL_MS = 10000; // 10 segundos para actualizar la cola
+    private bool _isDisposed = false; // 🚩 SOLUCIÓN 1: Flag de control de disposición
+    private const int POLL_INTERVAL_MS = 5000; // 5 segundos para actualizar la cola
+    private bool isLoading = true;
 
-    // Propiedad para acceder al TurnoService inyectado (Simulación)
-    // En tu proyecto real, esto debe ser una inyección válida.
-    // private TurnoService TurnoService => ServiceProvider.GetRequiredService<TurnoService>();
-
-    // --- SIMULACIÓN DEL MODELO DE DATOS (REEMPLAZAR POR TU MODELO REAL) ---
-    public class Turno
+    // --- MODELO DE DATOS COMBINADO PARA LA VISTA ---
+    // (Asegúrate de que este modelo no exista ya en tus archivos 'Models')
+    public class TurnoInfoEmpleado
     {
-        public string TurnoID { get; set; } = Guid.NewGuid().ToString().Substring(0, 8);
-        public string NombreCliente { get; set; } = "Cliente Demo";
-        public string WhatsApp { get; set; } = "000-000-0000";
-        public string NumeroTurno { get; set; } = "DE-M-01";
-        public int ColaID { get; set; } = 1;
-        public string PuestoAtencion { get; set; } = "PUESTO 3";
+        public int TurnoID { get; set; }
+        public string NombreCliente { get; set; } = "N/A";
+        public string WhatsApp { get; set; } = "N/A";
+        public string NumeroTurno { get; set; } = "N/A";
+        public DateTime FechaCreacion { get; set; }
+        public string PuestoAtencion { get; set; } = "PUESTO ASIGNADO"; // Se usará para un futuro estado
     }
-    // --------------------------------------------------------------------------
+    // --------------------------------------------------
 
     protected override async Task OnInitializedAsync()
     {
+        // 1. Cargamos la cola por primera vez
         await LoadTurnos();
 
-        // Inicializar y comenzar el Timer para Polling
+        // 2. Inicializar y comenzar el Timer para Polling (actualización automática)
         _queueTimer = new System.Timers.Timer(POLL_INTERVAL_MS);
-        _queueTimer.Elapsed += async (sender, e) => await OnQueueTimerElapsed();
+        // 🚩 SOLUCIÓN 2: Usamos un método con nombre para el handler
+        _queueTimer.Elapsed += OnQueueTimerElapsed;
         _queueTimer.AutoReset = true;
         _queueTimer.Enabled = true;
     }
 
-    private async Task OnQueueTimerElapsed()
+    // 🚩 SOLUCIÓN 3: El handler que se ejecuta en el hilo secundario del Timer
+    private void OnQueueTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        await InvokeAsync(async () =>
+        InvokeAsync(async () =>
         {
+            // 🚩 CLAVE DE LA SOLUCIÓN: Verificamos si ya estamos desechados antes de actualizar.
+            if (_isDisposed)
+            {
+                return;
+            }
+
             await LoadTurnos();
             StateHasChanged(); // Forzar la actualización de la interfaz
         });
     }
 
+    // 🚩 IMPLEMENTACIÓN REAL DE LA CARGA DE DATOS
     private async Task LoadTurnos()
     {
+        isLoading = true;
         try
         {
-            // Lógica real: TurnosEnEspera = await TurnoService.GetTurnosEnEsperaAsync(Area);
+            // Obtener el servicio de Turnos
+            var turnoService = ScopedServices.GetRequiredService<TurnoService>();
 
-            // SIMULACIÓN DE DATOS (QUITAR EN PRODUCCIÓN)
-            TurnosEnEspera = GetSimulatedTurnos(Area);
+            // 1. Obtener TODOS los turnos que están "En Espera" (asumiendo que ese es el estado)
+            // Ya que el turno se guarda sin IdServicio, asumimos que todos van a una cola general
+            // o que la lógica de tu servicio filtra por un campo de 'estado' (e.g., Status == "En Espera")
+            var turnosDB = await turnoService.Listar(t=>t.IdTurno>0); // Deberías usar un método con filtro, e.g., GetTurnosEnEspera(Area)
+
+            // Filtramos los turnos si es necesario, o asumimos que GetTurnosEnEspera hace el filtro por área/estado.
+            // Aquí vamos a simular que solo nos interesan los turnos con un IdCliente válido (>0)
+            var turnosPendientes = turnosDB.Where(t => t.IdCliente > 0).ToList();
+
+            var listaCola = new List<TurnoInfoEmpleado>();
+
+            // 2. Iterar sobre los turnos para obtener los datos del Cliente
+            foreach (var turno in turnosPendientes)
+            {
+                var cliente = await ClienteService.Buscar(turno.IdCliente);
+
+                listaCola.Add(new TurnoInfoEmpleado
+                {
+                    TurnoID = turno.IdTurno,
+                    NombreCliente = cliente?.Nombres ?? "Cliente Desconocido", // Usar operador Elvis (??) para manejo de nulos
+                    WhatsApp = cliente?.Telefono ?? "---",
+                    NumeroTurno = turno.NumTurno ?? "S/N", // Asumimos que NumTurno es el código del ticket
+                    FechaCreacion = turno.Fecha
+                });
+            }
+
+            TurnosEnEspera = listaCola;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar turnos: {ex.Message}");
+            // Ocultamos el error de disposición, pero si es otro error lo mostramos en consola
+            if (!_isDisposed)
+            {
+                Console.WriteLine($"Error al cargar turnos: {ex.Message}");
+            }
+            TurnosEnEspera = new List<TurnoInfoEmpleado>(); // Mostrar lista vacía en caso de error
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
@@ -121,48 +178,41 @@
     {
         if (TurnosEnEspera.Count == 0) return;
 
-        var turnoACtualizar = TurnosEnEspera.OrderBy(t => t.ColaID).First();
+        // El turno con el menor ID (más antiguo) es el siguiente
+        var turnoACtualizar = TurnosEnEspera.OrderBy(t => t.TurnoID).First();
 
-        // Lógica real: await TurnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "Llamado", "Puesto Asignado");
+        // Lógica real: Marcar el turno como 'Llamado' en la base de datos (si tienes ese estado)
+        // await TurnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "Llamado", "Puesto Asignado");
 
-        // Forzamos la recarga inmediata para que el turno desaparezca de la lista
+        // Por ahora, solo llamamos a LoadTurnos() para refrescar (aunque no cambie nada sin la lógica de estado)
         await LoadTurnos();
         StateHasChanged();
     }
 
-    private async Task AtenderCliente(string turnoId)
+    private async Task AtenderCliente(int turnoId)
     {
-        // 1. Llama al servicio para finalizar el turno y crear el registro de prefactura.
-        // Lógica real: await TurnoService.FinalizarTurnoYCrearPrefacturaAsync(turnoId);
+        // 1. Lógica real: Marcar el turno como 'En Atención' en la base de datos
+        var turnoService = ScopedServices.GetRequiredService<TurnoService>();
+        // Asumiendo que existe un método para actualizar el estado del turno
+        // await turnoService.CambiarEstadoAsync(turnoId, "En Atención");
 
-        // 2. Redirección inmediata a la pantalla de prefactura
-        NavigationManager.NavigateTo($"/prefactura/{turnoId}");
+        // 2. Redirección a la pantalla de prefactura
+        // Enviamos el ID del Turno, la página de PreFactura sabrá qué cliente buscar.
+         navigationManager.NavigateTo($"/prefactura/{turnoId}");
     }
 
     // --- LIMPIEZA ---
     public new void Dispose()
     {
-        _queueTimer?.Dispose();
-        // base.Dispose();
-    }
 
-    // --- FUNCIÓN DE SIMULACIÓN (QUITA ESTO EN PRODUCCIÓN) ---
-    private List<Turno> GetSimulatedTurnos(string area)
-    {
-        // Esta lista simula los datos que vendrían de la DB.
-        return area.ToUpper() switch
+        _isDisposed = true; // Aseguramos que el flag esté en true
+        if (_queueTimer != null)
         {
-            "DISEÑO Y EDICIÓN" => new List<Turno>
-            {
-                new Turno { NombreCliente = "Jose García", NumeroTurno = "DE-M-01", ColaID = 1 },
-                new Turno { NombreCliente = "Carla Pérez", NumeroTurno = "DE-FM-01", ColaID = 2 },
-            },
-            "SERVICIO EXPRESS" => new List<Turno>
-            {
-                new Turno { NombreCliente = "Raúl Blanco", NumeroTurno = "SE-C-01", ColaID = 1 },
-                new Turno { NombreCliente = "Laura Rivas", NumeroTurno = "SE-I-02", ColaID = 2 }
-            },
-            _ => new List<Turno>()
-        };
+            _queueTimer.Elapsed -= OnQueueTimerElapsed; // Quitamos el handler
+            _queueTimer.Stop();
+            _queueTimer.Dispose();
+            _queueTimer = null;
+        }
+
     }
 }
