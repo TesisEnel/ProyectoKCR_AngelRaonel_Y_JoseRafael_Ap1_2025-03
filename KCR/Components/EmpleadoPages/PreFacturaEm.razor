@@ -1,486 +1,264 @@
 ﻿@page "/prefactura/{TurnoId:int}"
-
 @layout ClientLayout
 
 @inject NavigationManager NavigationManager
-
 @inject TurnoService turnoService
-
+@inject PreFacturaService preFacturaService
 @rendermode InteractiveServer
 
-
+@using System.Globalization
+@using KCR.Models 
 
 <div class="prefactura-container">
-
     <h1 class="main-title">GENERACIÓN DE PRE-FACTURA</h1>
 
-
-
     @if (isLoading)
-
     {
-
         <p class="loading-message">Cargando datos del cliente...</p>
-
     }
-
     else if (clienteTurno is null)
-
     {
-
         <p class="error-message">Error: No se encontraron datos para el Turno ID: @TurnoId</p>
-
     }
-
     else
-
     {
-
         <div class="prefactura-grid">
-
-
-
-            <!-- COLUMNA IZQUIERDA: DATOS DEL CLIENTE Y RESUMEN -->
-
             <div class="client-details-card">
-
                 <h2 class="section-title">Datos del Cliente</h2>
 
                 <div class="data-group">
-
                     <label>Turno:</label>
-
-                    <span class="data-value highlight">@clienteTurno.NumeroTurno</span>
-
+                    <span class="data-value highlight">@clienteTurno.NumTurno</span>
                 </div>
 
                 <div class="data-group">
-
                     <label>Nombre:</label>
-
-                    <span class="data-value">@clienteTurno.NombreCliente</span>
-
+                    <span class="data-value">@clienteTurno.Clientes.Nombres</span>
                 </div>
 
                 <div class="data-group">
-
                     <label>WhatsApp:</label>
-
-                    <span class="data-value">@clienteTurno.WhatsApp</span>
-
+                    <span class="data-value">@clienteTurno.Clientes.Telefono</span>
                 </div>
 
                 <div class="data-group">
-
                     <label>Servicio Inicial:</label>
-
-                    <span class="data-value">@clienteTurno.Servicio</span>
-
+                    <span class="data-value">@clienteTurno.Servicios?.Nombre</span>
                 </div>
-
-
 
                 <div class="summary-box">
-
                     <h3>RESUMEN DE COBRO</h3>
-
                     <div class="summary-item">
-
                         <span>Subtotal:</span>
-
                         <span>@Subtotal.ToString("C2", culturaDO)</span>
-
                     </div>
-
                     <div class="summary-item">
-
                         <span>ITBIS (18%):</span>
-
                         <span>@ITBIS.ToString("C2", culturaDO)</span>
-
                     </div>
-
                     <div class="summary-item total">
-
                         <span>TOTAL A PAGAR:</span>
-
                         <span>@Total.ToString("C2", culturaDO)</span>
-
                     </div>
-
                 </div>
-
-
 
                 <button class="btn-finalizar" @onclick="FinalizarPrefactura" disabled="@(PreFacturaItems.Count == 0)">
-
                     PASAR A FACTURA FINAL
-
                 </button>
-
             </div>
 
-
-
-            <!-- COLUMNA DERECHA: BÚSQUEDA Y DETALLE DE INVENTARIO -->
-
             <div class="search-and-details-card">
-
                 <div class="search-area">
-
                     <input type="text"
                            placeholder="Buscar Productos o Servicios..."
-                           @bind-value="searchQuery"
-                           @bind-value:event="oninput"
-                           @* @oninput="SearchItemsAsync" *@
+                           @bind="searchQuery"
+                           @bind:event="oninput"
+                           @bind:after="SearchItemsAsync"
                            class="search-input-large" />
-
                 </div>
-
-
-
                 <h2 class="search-results-title">Inventario / Servicios Disponibles</h2>
 
                 <div class="search-results-list">
-
                     <table class="items-table search-table">
-
                         <thead>
-
                             <tr>
-
                                 <th>Descripción del Artículo</th>
-
                                 <th class="col-price">Precio U.</th>
-
+                                <th class="col-cant">CANT.</th>
                                 <th class="col-action"></th>
-
                             </tr>
-
                         </thead>
-
                         <tbody>
-
                             @if (isSearching)
-
                             {
-
-                                <tr><td colspan="3" class="no-data">Buscando...</td></tr>
-
+                                <tr><td colspan="4" class="no-data">Buscando...</td></tr>
                             }
-
-                            else if (searchResults.Count == 0 && !string.IsNullOrWhiteSpace(searchQuery) && searchQuery.Length >= 3)
-
+                            else if (searchResults.Count == 0 && !string.IsNullOrWhiteSpace(searchQuery) && searchQuery.Length >= 1)
                             {
-
-                                <tr><td colspan="3" class="no-data">No se encontraron artículos para "@searchQuery".</td></tr>
-
+                                <tr><td colspan="4" class="no-data">No se encontraron artículos para "@searchQuery".</td></tr>
                             }
-
                             else
-
                             {
-
                                 @foreach (var result in searchResults)
-
                                 {
-
-                                    <tr>
-
+                                    <tr key="@result.Id">
                                         <td>@result.Description</td>
-
                                         <td class="col-price">@result.Price.ToString("C2", culturaDO)</td>
-
-                                        <td class="col-action">
-
-                                            <button class="btn-add-item-small" @onclick="() => AddToPreFactura(result)">
-
-                                                <i class="fa-solid fa-plus"></i> AÑADIR
-
-                                            </button>
-
+                                        <td class="col-cant">
+                                            <input type="number" 
+                                                   @bind="result.Quantity" 
+                                                   min="1" 
+                                                   class="qty-input" />
                                         </td>
-
+                                        <td class="col-action">
+                                            <button class="btn-add-item-small" @onclick="() => AddToPreFactura(result)">
+                                                <i class="fa-solid fa-plus"></i> AÑADIR
+                                            </button>
+                                        </td>
                                     </tr>
-
                                 }
-
                             }
-
                         </tbody>
-
                     </table>
-
                 </div>
-
-
 
                 <h2 class="section-title items-title">Detalle de Pre-Factura (@PreFacturaItems.Count)</h2>
 
                 <div class="prefactura-items-table-wrapper">
-
                     <table class="items-table">
-
                         <thead>
-
                             <tr>
-
                                 <th>Descripción</th>
-
                                 <th class="col-cant">Cant.</th>
-
                                 <th class="col-price">Precio U.</th>
-
                                 <th class="col-total">Total</th>
-
                                 <th></th>
-
                             </tr>
-
                         </thead>
-
                         <tbody>
-
                             @foreach (var item in PreFacturaItems)
-
                             {
-
                                 <tr key="@item.Id">
-
                                     <td>@item.Description</td>
-
                                     <td class="col-cant">
-
-                                        <input type="number" @bind="item.Quantity" @bind:event="onchange" min="1" class="qty-input" @* @onchange="StateHasChanged" *@ />
-
+                                        <input type="number" 
+                                               @bind="item.Quantity" 
+                                               min="1" 
+                                               class="qty-input" 
+                                              />
                                     </td>
-
                                     <td class="col-price">@item.Price.ToString("C2", culturaDO)</td>
-
                                     <td class="col-total">@item.Total.ToString("C2", culturaDO)</td>
-
                                     <td><span class="delete-icon" @onclick="() => RemoveItem(item.Id)">×</span></td>
-
                                 </tr>
-
                             }
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
-
         </div>
-
     }
-
 </div>
 
-
-
 @code {
-
-    [Parameter] public int TurnoId { get; set; }
-
-
+    [Parameter]
+    public int TurnoId { get; set; }
 
     private bool isLoading = true;
-
     private bool isSearching = false;
-
-    private TurnoData? clienteTurno;
-
-
+    private Turnos? clienteTurno; 
 
     private string searchQuery = string.Empty;
-
     private List<ProductItem> searchResults = new();
-
     private List<ProductItem> PreFacturaItems = new();
-
-
 
     private readonly System.Globalization.CultureInfo culturaDO = new("es-DO");
 
-
-
-    // Propiedades calculadas
-
     private decimal Subtotal => PreFacturaItems.Sum(i => i.Total);
-
     private decimal ITBIS => Subtotal * 0.18M;
-
     private decimal Total => Subtotal + ITBIS;
 
-
-
     protected override async Task OnInitializedAsync()
-
     {
-
         isLoading = true;
-
-        // clienteTurno = await turnoService.Buscar(TurnoId);
-
+        clienteTurno = await turnoService.Buscar(TurnoId); 
         isLoading = false;
-
     }
-
-
 
     private async Task SearchItemsAsync()
-
     {
-
-        if (string.IsNullOrWhiteSpace(searchQuery) || searchQuery.Length < 3)
-
+        if (string.IsNullOrWhiteSpace(searchQuery) || searchQuery.Length < 1)
         {
-
             searchResults = new();
-
             StateHasChanged();
-
             return;
-
         }
 
-
-
         isSearching = true;
-
         StateHasChanged();
 
-
-
-        // searchResults = await turnoService.Buscar(searchQuery); // llamada real al servicio
-
-
+        searchResults = await preFacturaService.BuscarInventario(searchQuery);
 
         isSearching = false;
-
         StateHasChanged();
-
     }
 
-
-
     private void AddToPreFactura(ProductItem item)
-
     {
+        if (item.Quantity <= 0)
+        {
+            return; 
+        }
 
         var existingItem = PreFacturaItems.FirstOrDefault(i => i.ProductId == item.ProductId);
 
-
-
         if (existingItem != null)
-
         {
-
-            existingItem.Quantity++;
-
+            existingItem.Quantity += item.Quantity;
         }
-
         else
-
         {
-
             var newItem = new ProductItem
-
             {
-
                 Id = Guid.NewGuid(),
-
                 ProductId = item.ProductId,
-
                 Description = item.Description,
-
                 Price = item.Price,
-
-                Quantity = 1
-
+                Quantity = item.Quantity 
             };
-
             PreFacturaItems.Add(newItem);
-
         }
-
-
-
+        
+        item.Quantity = 1;
         searchQuery = string.Empty;
-
         searchResults = new();
-
-        StateHasChanged();
-
+        CalculateTotals();
     }
-
-
 
     private void RemoveItem(Guid id)
-
     {
-
         PreFacturaItems.RemoveAll(i => i.Id == id);
-
-        StateHasChanged();
-
+        CalculateTotals();
     }
 
-
+    private void CalculateTotals()
+    {
+        StateHasChanged();
+    }
 
     private void FinalizarPrefactura()
-
     {
-
-        // Aquí guardas en DB o envías a otra pantalla
-
         Console.WriteLine($"Factura Finalizada: {Total.ToString("C2", culturaDO)} para el Turno {TurnoId}");
-
         NavigationManager.NavigateTo($"/caja/{TurnoId}");
-
     }
-
-
-
-    // Modelos
-
-    public class TurnoData
-
-    {
-
-        public string TurnoID { get; set; } = string.Empty;
-
-        public string NumeroTurno { get; set; } = string.Empty;
-
-        public string NombreCliente { get; set; } = string.Empty;
-
-        public string WhatsApp { get; set; } = string.Empty;
-
-        public string Servicio { get; set; } = string.Empty;
-
-    }
-
-
 
     public class ProductItem
-
     {
-
         public Guid Id { get; set; } = Guid.NewGuid();
-
         public int ProductId { get; set; }
-
         public string Description { get; set; } = string.Empty;
-
         public int Quantity { get; set; } = 1;
-
         public decimal Price { get; set; }
-
         public decimal Total => Quantity * Price;
-
     }
-
 }

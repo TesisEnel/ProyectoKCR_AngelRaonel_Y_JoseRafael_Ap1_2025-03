@@ -39,10 +39,13 @@ public class TurnoService(IDbContextFactory<ApplicationDbContext> DbFactory)
         }
     }
 
-    public async Task<Turnos> Buscar(int idturnos)
+    public async Task<Turnos?> Buscar(int idturnos)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.turnos.FirstOrDefaultAsync(t => t.IdTurno == idturnos);
+        return await contexto.turnos
+            .Include(t => t.Clientes)
+            .Include(t => t.Servicios)
+            .FirstOrDefaultAsync(t => t.IdTurno == idturnos);
     }
 
     public async Task<List<Turnos>> Listar(Expression<Func<Turnos, bool>> criterio)

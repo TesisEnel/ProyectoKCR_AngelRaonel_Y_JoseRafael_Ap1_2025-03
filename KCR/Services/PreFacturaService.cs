@@ -2,6 +2,7 @@
 using KCR.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using static KCR.Components.EmpleadoPages.PreFacturaEm;
 
 namespace KCR.Services;
 
@@ -96,6 +97,45 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.materiales.Where(m => m.IdMaterial > 0).AsNoTracking().ToListAsync();
+    }
+
+    public async Task<List<ProductItem>> BuscarInventario(string query)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return new List<ProductItem>();
+        }
+
+        var lowerQuery = query.ToLower();
+
+        var servicios = await contexto.servicios
+            .Where(s =>
+                s.Nombre.ToLower().Contains(lowerQuery) ||
+                (s.Tipo != null && s.Tipo.ToLower().Contains(lowerQuery)))
+            .Select(s => new ProductItem
+            {
+                ProductId = s.IdServicio,
+                Description = $"{s.Nombre} ({s.Tipo ?? "Servicio"})",
+                Price = (decimal)s.Precio,
+                Quantity = 1 
+            })
+            .ToListAsync();
+
+        var materiales = await contexto.materiales
+            .Where(m => m.Existencia > 0)
+            .Where(m => m.Nombre.ToLower().Contains(lowerQuery))
+            .Select(m => new ProductItem
+            {
+                ProductId = m.IdMaterial,
+                Description = $"{m.Nombre} (Material)",
+                Price = (decimal)m.PrecioUnitario,
+                Quantity = 1 
+            })
+            .ToListAsync();
+
+        return servicios.Concat(materiales).OrderBy(i => i.Description).ToList();
     }
 }
 
