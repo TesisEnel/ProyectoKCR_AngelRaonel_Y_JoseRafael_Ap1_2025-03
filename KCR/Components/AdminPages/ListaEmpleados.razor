@@ -8,7 +8,7 @@
 
 @layout MainLayout
 @inject NavigationManager navigationManager
-@inject EmpleadoService empleadoService 
+@inject EmpleadoService empleadoService
 @rendermode InteractiveServer
 
 <div class="lista-empleados-page">
@@ -20,16 +20,17 @@
             <div class="top-toolbar">
                 <div class="filter-group">
                     <label for="filter-select">Filtrar por</label>
-                    <select id="filter-select" class="form-select" @bind="FiltroSeleccionado">
+                    <select id="filter-select" class="form-select" @bind="Filtro">
                         <option value="">Seleccione</option>
+                        <option value="Nombre">Nombre</option>
                         <option value="Cargo">Cargo</option>
-                        <option value="ID">ID</option>
+                        <option value="IdEmpleado">ID</option>
                     </select>
                 </div>
                 <div class="search-group">
                     <label for="search-input">Búsqueda</label>
                     <div class="search-input-container">
-                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="TerminoBusqueda" @oninput="Buscar" />
+                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="ValorFiltro" @oninput="Buscar" />
                         <span class="search-icon">🔍</span>
                     </div>
                 </div>
@@ -93,13 +94,13 @@
 </div>
 
 @code {
-    private string FiltroSeleccionado { get; set; } = "";
-    private string TerminoBusqueda { get; set; } = "";
-    private List<Empleados> Empleados = new(); 
-    private bool isLoading = true; 
+    private string ValorFiltro { get; set; } = ""; 
+    private string Filtro { get; set; } = ""; 
+
+    private List<Empleados> Empleados = new();
+    private bool isLoading = true;
 
     private List<Empleados> EmpleadosFiltrados => AplicarFiltroYBusqueda();
-
 
 
     protected override async Task OnInitializedAsync()
@@ -117,7 +118,6 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error al cargar empleados: {ex.Message}");
-
         }
         finally
         {
@@ -129,21 +129,48 @@
     private List<Empleados> AplicarFiltroYBusqueda()
     {
         var lista = Empleados.AsEnumerable();
-        var termino = TerminoBusqueda.ToLower();
-        if (!string.IsNullOrWhiteSpace(termino))
+        var textoBusqueda = ValorFiltro.Trim().ToLower();
+
+        if (!string.IsNullOrWhiteSpace(textoBusqueda))
         {
-            lista = lista.Where(e => (e.Nombre != null && e.Nombre.ToLower().Contains(termino)) ||
-                                     e.IdEmpleado.ToString().Contains(termino) ||
-                                     (e.Cargo != null && e.Cargo.ToLower().Contains(termino)));
+            if (Filtro == "Nombre")
+            {
+                lista = lista.Where(e => e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "Cargo")
+            {
+                lista = lista.Where(e => e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "IdEmpleado")
+            {
+                // Manejo seguro para ID (entero)
+                if (int.TryParse(ValorFiltro.Trim(), out int idBusqueda))
+                {
+                    lista = lista.Where(e => e.IdEmpleado == idBusqueda);
+                }
+                else
+                {
+                    return new List<Empleados>();
+                }
+            }
+            else 
+            {
+                lista = lista.Where(e => (e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda)) ||
+                                         (e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda)) ||
+                                          e.IdEmpleado.ToString().Contains(textoBusqueda));
+            }
         }
-        if (FiltroSeleccionado == "Cargo")
+
+
+        if (Filtro == "Cargo")
         {
             lista = lista.OrderBy(e => e.Cargo);
         }
-        else if (FiltroSeleccionado == "ID")
+        else if (Filtro == "IdEmpleado")
         {
             lista = lista.OrderBy(e => e.IdEmpleado);
         }
+
 
         return lista.ToList();
     }
@@ -159,15 +186,14 @@
         navigationManager.NavigateTo("/registro-empleado");
     }
 
-    private void Modificar(int id) 
+    private void Modificar(int id)
     {
         navigationManager.NavigateTo($"/modificar-empleado/{id}");
     }
 
-    private async Task Eliminar(int id) 
+    private async Task Eliminar(int id)
     {
         Console.WriteLine($"Intentando eliminar empleado con ID: {id}");
-
 
         if (await empleadoService.Eliminar(id))
         {

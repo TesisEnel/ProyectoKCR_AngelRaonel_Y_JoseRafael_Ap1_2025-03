@@ -4,6 +4,7 @@ using KCR.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KCR.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251206015622_Empleado")]
+    partial class Empleado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,7 +265,7 @@ namespace KCR.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPreFactura"));
 
-                    b.Property<int>("EmpleadoIdEmpleado")
+                    b.Property<int?>("EmpleadosIdEmpleado")
                         .HasColumnType("int");
 
                     b.Property<string>("Estado")
@@ -275,28 +278,17 @@ namespace KCR.Migrations
                     b.Property<int?>("IdCliente")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdEmpleado")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdTurno")
-                        .HasColumnType("int");
-
                     b.Property<string>("NombreCliente")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int>("TurnoIdTurno")
-                        .HasColumnType("int");
-
                     b.HasKey("IdPreFactura");
 
-                    b.HasIndex("EmpleadoIdEmpleado");
+                    b.HasIndex("EmpleadosIdEmpleado");
 
                     b.HasIndex("IdCliente");
-
-                    b.HasIndex("TurnoIdTurno");
 
                     b.ToTable("preFacturas");
                 });
@@ -435,11 +427,6 @@ namespace KCR.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdTurno"));
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
@@ -622,27 +609,15 @@ namespace KCR.Migrations
 
             modelBuilder.Entity("KCR.Models.PreFacturas", b =>
                 {
-                    b.HasOne("KCR.Models.Empleados", "Empleado")
+                    b.HasOne("KCR.Models.Empleados", null)
                         .WithMany("PreFacturas")
-                        .HasForeignKey("EmpleadoIdEmpleado")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EmpleadosIdEmpleado");
 
                     b.HasOne("KCR.Models.Clientes", "Clientes")
                         .WithMany("PreFacturas")
                         .HasForeignKey("IdCliente");
 
-                    b.HasOne("KCR.Models.Turnos", "Turno")
-                        .WithMany()
-                        .HasForeignKey("TurnoIdTurno")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Clientes");
-
-                    b.Navigation("Empleado");
-
-                    b.Navigation("Turno");
                 });
 
             modelBuilder.Entity("KCR.Models.Turnos", b =>

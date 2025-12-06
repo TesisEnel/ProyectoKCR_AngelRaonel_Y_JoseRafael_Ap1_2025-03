@@ -4,6 +4,7 @@
 @inject NavigationManager navigationManager
 @inject TurnoService turnoService 
 @inject ClienteService clienteService 
+@inject PreFacturaService preFacturaService
 @rendermode InteractiveServer
 
 <div class="employee-queue-container">
@@ -67,15 +68,14 @@
 
 @code {
     [Parameter]
-    public string Area { get; set; } = "DISEÑO Y EDICIÓN"; 
-
+    public string Area { get; set; } = "DISEÑO Y EDICIÓN";
 
     private List<TurnoInfoEmpleado> TurnosEnEspera { get; set; } = new List<TurnoInfoEmpleado>();
     private System.Timers.Timer? _queueTimer;
     private bool _isDisposed = false;
-    private const int POLL_INTERVAL_MS = 5000; 
+    private const int POLL_INTERVAL_MS = 5000;
     private bool isLoading = true;
-
+    private object _lock = new object(); 
 
     public class TurnoInfoEmpleado
     {
@@ -86,7 +86,6 @@
         public DateTime FechaCreacion { get; set; }
         public string PuestoAtencion { get; set; } = "PUESTO ASIGNADO";
     }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,29 +99,56 @@
 
     private void OnQueueTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        InvokeAsync(async () =>
+        if (System.Threading.Monitor.TryEnter(_lock))
         {
-            if (_isDisposed)
+            try
             {
-                return;
+                InvokeAsync(async () =>
+                {
+                    if (_isDisposed)
+                    {
+                        return;
+                    }
+                    await LoadTurnos();
+                    StateHasChanged();
+                });
             }
-
-            await LoadTurnos();
-            StateHasChanged(); 
-        });
+            finally
+            {
+                System.Threading.Monitor.Exit(_lock);
+            }
+        }
     }
 
     private async Task LoadTurnos()
     {
         isLoading = true;
+        int? idServicioBuscado = null;
+
         try
         {
-            var turnosDB = await turnoService.Listar(t => t.Estado == "En Espera");
+            var todosLosServicios = await preFacturaService.ListarServicios();
 
+            var servicioEncontrado = todosLosServicios
+                .FirstOrDefault(s => s.Nombre != null &&
+                                     s.Nombre.Equals(Area, StringComparison.OrdinalIgnoreCase));
+
+            idServicioBuscado = servicioEncontrado?.IdServicio;
+
+
+            if (idServicioBuscado == null || idServicioBuscado <= 0)
+            {
+                TurnosEnEspera = new List<TurnoInfoEmpleado>();
+                return;
+            }
+           var turnosDB = await turnoService.Listar(t =>
+                t.Estado == "En Espera" &&
+                t.IdServicio == idServicioBuscado); 
+
+    
             var turnosPendientes = turnosDB.Where(t => t.IdCliente > 0).ToList();
 
             var listaCola = new List<TurnoInfoEmpleado>();
-
 
             foreach (var turno in turnosPendientes)
             {
@@ -157,22 +183,25 @@
     private async Task LlamarSiguiente()
     {
         if (TurnosEnEspera.Count == 0) return;
-
         var turnoACtualizar = TurnosEnEspera.OrderBy(t => t.TurnoID).First();
-        await LoadTurnos();
-        StateHasChanged();
+        var success = await turnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "En Llamada");
+        if (success)
+        {
+            await LoadTurnos();
+        }
+        else
+        {
+            Console.WriteLine($"Error al llamar al turno {turnoACtualizar.TurnoID}.");
+        }
     }
 
     private async Task AtenderCliente(int turnoId)
     {
-
         var success = await turnoService.CambiarEstadoAsync(turnoId, "En Atención");
-
         if (success)
         {
             TurnosEnEspera.RemoveAll(t => t.TurnoID == turnoId);
-            StateHasChanged(); 
-
+            StateHasChanged();
             navigationManager.NavigateTo($"/prefactura/{turnoId}");
         }
         else
