@@ -7,7 +7,7 @@
 @rendermode InteractiveServer
 
 @using System.Globalization
-@using KCR.Models 
+@using KCR.Models
 
 <div class="prefactura-container">
     <h1 class="main-title">GENERACIÓN DE PRE-FACTURA</h1>
@@ -25,25 +25,14 @@
         <div class="prefactura-grid">
             <div class="client-details-card">
                 <h2 class="section-title">Datos del Cliente</h2>
-
                 <div class="data-group">
-                    <label>Turno:</label>
-                    <span class="data-value highlight">@clienteTurno.NumTurno</span>
+                    <label>Turno:</label> <span class="data-value highlight">@clienteTurno.NumTurno</span>
                 </div>
-
                 <div class="data-group">
-                    <label>Nombre:</label>
-                    <span class="data-value">@clienteTurno.Clientes.Nombres</span>
+                    <label>Nombre:</label> <span class="data-value">@clienteTurno.Clientes.Nombres</span>
                 </div>
-
                 <div class="data-group">
-                    <label>WhatsApp:</label>
-                    <span class="data-value">@clienteTurno.Clientes.Telefono</span>
-                </div>
-
-                <div class="data-group">
-                    <label>Servicio Inicial:</label>
-                    <span class="data-value">@clienteTurno.Servicios?.Nombre</span>
+                    <label>Servicio Inicial:</label> <span class="data-value">@clienteTurno.Servicios?.Nombre</span>
                 </div>
 
                 <div class="summary-box">
@@ -76,39 +65,27 @@
                            @bind:after="SearchItemsAsync"
                            class="search-input-large" />
                 </div>
-                <h2 class="search-results-title">Inventario / Servicios Disponibles</h2>
 
-                <div class="search-results-list">
-                    <table class="items-table search-table">
-                        <thead>
-                            <tr>
-                                <th>Descripción del Artículo</th>
-                                <th class="col-price">Precio U.</th>
-                                <th class="col-cant">CANT.</th>
-                                <th class="col-action"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (isSearching)
-                            {
-                                <tr><td colspan="4" class="no-data">Buscando...</td></tr>
-                            }
-                            else if (searchResults.Count == 0 && !string.IsNullOrWhiteSpace(searchQuery) && searchQuery.Length >= 1)
-                            {
-                                <tr><td colspan="4" class="no-data">No se encontraron artículos para "@searchQuery".</td></tr>
-                            }
-                            else
-                            {
+                @if (searchResults.Count > 0)
+                {
+                    <div class="search-results-list">
+                        <table class="items-table search-table">
+                            <thead>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th class="col-price">Precio U.</th>
+                                    <th class="col-cant">CANT.</th>
+                                    <th class="col-action"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 @foreach (var result in searchResults)
                                 {
-                                    <tr key="@result.Id">
-                                        <td>@result.Description</td>
-                                        <td class="col-price">@result.Price.ToString("C2", culturaDO)</td>
+                                    <tr>
+                                        <td>@(result.Servicios?.Nombre ?? result.Materiales?.Nombre)</td>
+                                        <td class="col-price">@result.PrecioUnitario.ToString("C2", culturaDO)</td>
                                         <td class="col-cant">
-                                            <input type="number" 
-                                                   @bind="result.Quantity" 
-                                                   min="1" 
-                                                   class="qty-input" />
+                                            <input type="number" @bind="result.Cantidad" min="1" class="qty-input" />
                                         </td>
                                         <td class="col-action">
                                             <button class="btn-add-item-small" @onclick="() => AddToPreFactura(result)">
@@ -117,13 +94,12 @@
                                         </td>
                                     </tr>
                                 }
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                            </tbody>
+                        </table>
+                    </div>
+                }
 
                 <h2 class="section-title items-title">Detalle de Pre-Factura (@PreFacturaItems.Count)</h2>
-
                 <div class="prefactura-items-table-wrapper">
                     <table class="items-table">
                         <thead>
@@ -138,18 +114,14 @@
                         <tbody>
                             @foreach (var item in PreFacturaItems)
                             {
-                                <tr key="@item.Id">
-                                    <td>@item.Description</td>
+                                <tr>
+                                    <td>@(item.Servicios?.Nombre ?? item.Materiales?.Nombre)</td>
                                     <td class="col-cant">
-                                        <input type="number" 
-                                               @bind="item.Quantity" 
-                                               min="1" 
-                                               class="qty-input" 
-                                              />
+                                        <input type="number" @bind="item.Cantidad" min="1" class="qty-input" @bind:after="CalculateTotals" />
                                     </td>
-                                    <td class="col-price">@item.Price.ToString("C2", culturaDO)</td>
-                                    <td class="col-total">@item.Total.ToString("C2", culturaDO)</td>
-                                    <td><span class="delete-icon" @onclick="() => RemoveItem(item.Id)">×</span></td>
+                                    <td class="col-price">@item.PrecioUnitario.ToString("C2", culturaDO)</td>
+                                    <td class="col-total">@((item.Cantidad * item.PrecioUnitario).ToString("C2", culturaDO))</td>
+                                    <td><span class="delete-icon" @onclick="() => RemoveItem(item)">×</span></td>
                                 </tr>
                             }
                         </tbody>
@@ -161,27 +133,28 @@
 </div>
 
 @code {
-    [Parameter]
-    public int TurnoId { get; set; }
+    [Parameter] public int TurnoId { get; set; }
 
     private bool isLoading = true;
     private bool isSearching = false;
-    private Turnos? clienteTurno; 
-
+    private Turnos? clienteTurno;
     private string searchQuery = string.Empty;
-    private List<ProductItem> searchResults = new();
-    private List<ProductItem> PreFacturaItems = new();
+
+    // CAMBIO: Listas ahora usan el modelo real
+    private List<PreFacturaDetalles> searchResults = new();
+    private List<PreFacturaDetalles> PreFacturaItems = new();
 
     private readonly System.Globalization.CultureInfo culturaDO = new("es-DO");
 
-    private decimal Subtotal => PreFacturaItems.Sum(i => i.Total);
+    // Cálculo de totales basado en propiedades de PreFacturaDetalles
+    private decimal Subtotal => PreFacturaItems.Sum(i => i.Cantidad * i.PrecioUnitario);
     private decimal ITBIS => Subtotal * 0.18M;
     private decimal Total => Subtotal + ITBIS;
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        clienteTurno = await turnoService.Buscar(TurnoId); 
+        clienteTurno = await turnoService.Buscar(TurnoId);
         isLoading = false;
     }
 
@@ -190,54 +163,48 @@
         if (string.IsNullOrWhiteSpace(searchQuery) || searchQuery.Length < 1)
         {
             searchResults = new();
-            StateHasChanged();
             return;
         }
 
         isSearching = true;
-        StateHasChanged();
-
         searchResults = await preFacturaService.BuscarInventario(searchQuery);
-
         isSearching = false;
-        StateHasChanged();
     }
 
-    private void AddToPreFactura(ProductItem item)
+    private void AddToPreFactura(PreFacturaDetalles newItem)
     {
-        if (item.Quantity <= 0)
-        {
-            return; 
-        }
+        if (newItem.Cantidad <= 0) return;
 
-        var existingItem = PreFacturaItems.FirstOrDefault(i => i.ProductId == item.ProductId);
+        var existingItem = PreFacturaItems.FirstOrDefault(i =>
+            (i.IdServicio != null && i.IdServicio == newItem.IdServicio) ||
+            (i.IdMaterial != null && i.IdMaterial == newItem.IdMaterial));
 
         if (existingItem != null)
         {
-            existingItem.Quantity += item.Quantity;
+            existingItem.Cantidad += newItem.Cantidad;
         }
         else
         {
-            var newItem = new ProductItem
+            var itemToAdd = new PreFacturaDetalles
             {
-                Id = Guid.NewGuid(),
-                ProductId = item.ProductId,
-                Description = item.Description,
-                Price = item.Price,
-                Quantity = item.Quantity 
+                IdServicio = newItem.IdServicio,
+                IdMaterial = newItem.IdMaterial,
+                PrecioUnitario = newItem.PrecioUnitario,
+                Cantidad = newItem.Cantidad,
+                Servicios = newItem.Servicios,
+                Materiales = newItem.Materiales
             };
-            PreFacturaItems.Add(newItem);
+            PreFacturaItems.Add(itemToAdd);
         }
-        
-        item.Quantity = 1;
+
         searchQuery = string.Empty;
-        searchResults = new();
+        searchResults.Clear();
         CalculateTotals();
     }
 
-    private void RemoveItem(Guid id)
+    private void RemoveItem(PreFacturaDetalles item)
     {
-        PreFacturaItems.RemoveAll(i => i.Id == id);
+        PreFacturaItems.Remove(item);
         CalculateTotals();
     }
 
@@ -246,19 +213,39 @@
         StateHasChanged();
     }
 
-    private void FinalizarPrefactura()
+    private async Task FinalizarPrefactura()
     {
-        Console.WriteLine($"Factura Finalizada: {Total.ToString("C2", culturaDO)} para el Turno {TurnoId}");
-        NavigationManager.NavigateTo($"/caja/{TurnoId}");
-    }
+        if (PreFacturaItems.Count == 0 || clienteTurno == null) return;
 
-    public class ProductItem
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public int ProductId { get; set; }
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 1;
-        public decimal Price { get; set; }
-        public decimal Total => Quantity * Price;
+        var nuevaPreFactura = new PreFacturas
+        {
+            IdCliente = clienteTurno.Clientes.IdCliente,
+            NombreCliente = clienteTurno.Clientes.Nombres,
+            Fecha = DateTime.Now,
+            Estado = "Pendiente",
+            Total = this.Total
+        };
+
+        foreach (var item in PreFacturaItems)
+        {
+            var detalleLimpio = new PreFacturaDetalles
+            {
+                IdServicio = item.IdServicio,
+                IdMaterial = item.IdMaterial,
+                Cantidad = item.Cantidad,
+                PrecioUnitario = item.PrecioUnitario,
+                Servicios = null,
+                Materiales = null
+            };
+
+            nuevaPreFactura.PreFacturaDetalles.Add(detalleLimpio);
+        }
+
+        var resultado = await preFacturaService.Guardar(nuevaPreFactura);
+
+        if (resultado)
+        {
+            NavigationManager.NavigateTo($"/caja/{TurnoId}");
+        }
     }
 }

@@ -12,13 +12,12 @@ public class PreFacturas
     public DateTime Fecha { get; set; }
     public string Estado { get; set; }
 
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal Total { get; set; }
+
     [ForeignKey("Clientes")]
     public int? IdCliente { get; set; }
     public Clientes? Clientes { get; set; }
-
-    [ForeignKey("Empleados")]
-    public int IdEmpleado { get; set; }
-    public Empleados Empleados { get; set; }
 
     // Relaciones
     public ICollection<PreFacturaDetalles> PreFacturaDetalles { get; set; } = new List<PreFacturaDetalles>();
