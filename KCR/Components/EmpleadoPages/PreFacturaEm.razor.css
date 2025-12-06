@@ -176,6 +176,7 @@
 
 /* --- 3. TABLA DE ARTÍCULOS DE LA PRE-FACTURA (Detalle Final) --- */
 .prefactura-items-table-wrapper {
+    max-height: 380px;
     flex-grow: 1; /* Permite que la tabla final crezca para ocupar el espacio restante */
     overflow-y: auto; /* Scroll si el número de items es muy grande */
     background-color: white;
@@ -184,8 +185,11 @@
 }
 
 .items-table {
+    position: relative;
     width: 100%;
     border-collapse: collapse;
+    overflow-y: auto;width: 100%;
+    margin-top: 10px;
 }
 
     .items-table thead th {

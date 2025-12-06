@@ -101,7 +101,8 @@
 
                 <h2 class="section-title items-title">Detalle de Pre-Factura (@PreFacturaItems.Count)</h2>
                 <div class="prefactura-items-table-wrapper">
-                    <table class="items-table">
+
+                    <table class="items-table header-fixed">
                         <thead>
                             <tr>
                                 <th>Descripción</th>
@@ -126,6 +127,30 @@
                             }
                         </tbody>
                     </table>
+
+                    <div class="tbody-scroll-container">
+                        <table class="items-table body-scroll">
+                            <tbody>
+                                @foreach (var item in PreFacturaItems)
+                                {
+                                    <tr key="@item.Id">
+                                        <td>@item.Description</td>
+                                        <td class="col-cant">
+                                            <input type="number"
+                                                   @bind="item.Quantity"
+                                                   min="1"
+                                                   class="qty-input"
+                                                   @bind:after="CalculateTotals" />
+                                        </td>
+                                        <td class="col-price">@item.Price.ToString("C2", culturaDO)</td>
+                                        <td class="col-total">@item.Total.ToString("C2", culturaDO)</td>
+                                        <td><span class="delete-icon" @onclick="() => RemoveItem(item.Id)">×</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </div>
