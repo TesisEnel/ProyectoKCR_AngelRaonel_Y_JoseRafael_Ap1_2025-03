@@ -56,5 +56,17 @@ public class TurnoService(IDbContextFactory<ApplicationDbContext> DbFactory)
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<bool> CambiarEstadoAsync(int turnoId, string nuevoEstado)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+        var turno = await contexto.turnos.FindAsync(turnoId);
+        if (turno == null)
+        {
+            return false;
+        }
+        turno.Estado = nuevoEstado;
+        return await contexto.SaveChangesAsync() > 0;
+    }
 }
 

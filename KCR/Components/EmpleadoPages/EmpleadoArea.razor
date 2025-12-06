@@ -1,16 +1,16 @@
 ﻿@page "/empleado/{Area}"
 @layout ClientLayout
-@inherits OwningComponentBase<TurnoService> // Para inyectar servicios en Blazor Server/WASM
-@implements IDisposable
+@inherits OwningComponentBase<TurnoService>
 @inject NavigationManager navigationManager
-@inject ClienteService ClienteService // Necesario para buscar los datos del cliente
+@inject TurnoService turnoService 
+@inject ClienteService clienteService 
+@inject PreFacturaService preFacturaService
 @rendermode InteractiveServer
 
 <div class="employee-queue-container">
 
     <div class="queue-card-wrapper">
         <div class="queue-card">
-            <!-- Título de la tarjeta de la cola -->
             <div class="card-header">
                 COLA ÁREA DE @Area.ToUpper()
                 @if (isLoading)
@@ -19,9 +19,7 @@
                 }
             </div>
 
-            <!-- 🚩 INICIO DEL CAMBIO: Contenedor Scrollable -->
             <div class="table-scroll-wrapper">
-                <!-- Tabla de turnos en espera -->
                 <table class="queue-table">
                     <thead>
                         <tr>
@@ -54,7 +52,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- 🚩 FIN DEL CAMBIO: Cierre del Contenedor Scrollable -->
         </div>
     </div>
 
@@ -71,17 +68,15 @@
 
 @code {
     [Parameter]
-    public string Area { get; set; } = "DISEÑO Y EDICIÓN"; // Valor por defecto
+    public string Area { get; set; } = "DISEÑO Y EDICIÓN";
 
-    // Usamos el modelo combinado para la vista
     private List<TurnoInfoEmpleado> TurnosEnEspera { get; set; } = new List<TurnoInfoEmpleado>();
     private System.Timers.Timer? _queueTimer;
-    private bool _isDisposed = false; // 🚩 SOLUCIÓN 1: Flag de control de disposición
-    private const int POLL_INTERVAL_MS = 5000; // 5 segundos para actualizar la cola
+    private bool _isDisposed = false;
+    private const int POLL_INTERVAL_MS = 5000;
     private bool isLoading = true;
+    private object _lock = new object(); 
 
-    // --- MODELO DE DATOS COMBINADO PARA LA VISTA ---
-    // (Asegúrate de que este modelo no exista ya en tus archivos 'Models')
     public class TurnoInfoEmpleado
     {
         public int TurnoID { get; set; }
@@ -89,70 +84,82 @@
         public string WhatsApp { get; set; } = "N/A";
         public string NumeroTurno { get; set; } = "N/A";
         public DateTime FechaCreacion { get; set; }
-        public string PuestoAtencion { get; set; } = "PUESTO ASIGNADO"; // Se usará para un futuro estado
+        public string PuestoAtencion { get; set; } = "PUESTO ASIGNADO";
     }
-    // --------------------------------------------------
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Cargamos la cola por primera vez
         await LoadTurnos();
 
-        // 2. Inicializar y comenzar el Timer para Polling (actualización automática)
         _queueTimer = new System.Timers.Timer(POLL_INTERVAL_MS);
-        // 🚩 SOLUCIÓN 2: Usamos un método con nombre para el handler
         _queueTimer.Elapsed += OnQueueTimerElapsed;
         _queueTimer.AutoReset = true;
         _queueTimer.Enabled = true;
     }
 
-    // 🚩 SOLUCIÓN 3: El handler que se ejecuta en el hilo secundario del Timer
     private void OnQueueTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        InvokeAsync(async () =>
+        if (System.Threading.Monitor.TryEnter(_lock))
         {
-            // 🚩 CLAVE DE LA SOLUCIÓN: Verificamos si ya estamos desechados antes de actualizar.
-            if (_isDisposed)
+            try
             {
-                return;
+                InvokeAsync(async () =>
+                {
+                    if (_isDisposed)
+                    {
+                        return;
+                    }
+                    await LoadTurnos();
+                    StateHasChanged();
+                });
             }
-
-            await LoadTurnos();
-            StateHasChanged(); // Forzar la actualización de la interfaz
-        });
+            finally
+            {
+                System.Threading.Monitor.Exit(_lock);
+            }
+        }
     }
 
-    // 🚩 IMPLEMENTACIÓN REAL DE LA CARGA DE DATOS
     private async Task LoadTurnos()
     {
         isLoading = true;
+        int? idServicioBuscado = null;
+
         try
         {
-            // Obtener el servicio de Turnos
-            var turnoService = ScopedServices.GetRequiredService<TurnoService>();
+            var todosLosServicios = await preFacturaService.ListarServicios();
 
-            // 1. Obtener TODOS los turnos que están "En Espera" (asumiendo que ese es el estado)
-            // Ya que el turno se guarda sin IdServicio, asumimos que todos van a una cola general
-            // o que la lógica de tu servicio filtra por un campo de 'estado' (e.g., Status == "En Espera")
-            var turnosDB = await turnoService.Listar(t=>t.IdTurno>0); // Deberías usar un método con filtro, e.g., GetTurnosEnEspera(Area)
+            var servicioEncontrado = todosLosServicios
+                .FirstOrDefault(s => s.Nombre != null &&
+                                     s.Nombre.Equals(Area, StringComparison.OrdinalIgnoreCase));
 
-            // Filtramos los turnos si es necesario, o asumimos que GetTurnosEnEspera hace el filtro por área/estado.
-            // Aquí vamos a simular que solo nos interesan los turnos con un IdCliente válido (>0)
+            idServicioBuscado = servicioEncontrado?.IdServicio;
+
+
+            if (idServicioBuscado == null || idServicioBuscado <= 0)
+            {
+                TurnosEnEspera = new List<TurnoInfoEmpleado>();
+                return;
+            }
+           var turnosDB = await turnoService.Listar(t =>
+                t.Estado == "En Espera" &&
+                t.IdServicio == idServicioBuscado); 
+
+    
             var turnosPendientes = turnosDB.Where(t => t.IdCliente > 0).ToList();
 
             var listaCola = new List<TurnoInfoEmpleado>();
 
-            // 2. Iterar sobre los turnos para obtener los datos del Cliente
             foreach (var turno in turnosPendientes)
             {
-                var cliente = await ClienteService.Buscar(turno.IdCliente);
+                var cliente = await clienteService.Buscar(turno.IdCliente);
 
                 listaCola.Add(new TurnoInfoEmpleado
                 {
                     TurnoID = turno.IdTurno,
-                    NombreCliente = cliente?.Nombres ?? "Cliente Desconocido", // Usar operador Elvis (??) para manejo de nulos
+                    NombreCliente = cliente?.Nombres ?? "Cliente Desconocido",
                     WhatsApp = cliente?.Telefono ?? "---",
-                    NumeroTurno = turno.NumTurno ?? "S/N", // Asumimos que NumTurno es el código del ticket
+                    NumeroTurno = turno.NumTurno ?? "S/N",
                     FechaCreacion = turno.Fecha
                 });
             }
@@ -161,12 +168,11 @@
         }
         catch (Exception ex)
         {
-            // Ocultamos el error de disposición, pero si es otro error lo mostramos en consola
             if (!_isDisposed)
             {
                 Console.WriteLine($"Error al cargar turnos: {ex.Message}");
             }
-            TurnosEnEspera = new List<TurnoInfoEmpleado>(); // Mostrar lista vacía en caso de error
+            TurnosEnEspera = new List<TurnoInfoEmpleado>();
         }
         finally
         {
@@ -177,42 +183,46 @@
     private async Task LlamarSiguiente()
     {
         if (TurnosEnEspera.Count == 0) return;
-
-        // El turno con el menor ID (más antiguo) es el siguiente
         var turnoACtualizar = TurnosEnEspera.OrderBy(t => t.TurnoID).First();
-
-        // Lógica real: Marcar el turno como 'Llamado' en la base de datos (si tienes ese estado)
-        // await TurnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "Llamado", "Puesto Asignado");
-
-        // Por ahora, solo llamamos a LoadTurnos() para refrescar (aunque no cambie nada sin la lógica de estado)
-        await LoadTurnos();
-        StateHasChanged();
+        var success = await turnoService.CambiarEstadoAsync(turnoACtualizar.TurnoID, "En Llamada");
+        if (success)
+        {
+            await LoadTurnos();
+        }
+        else
+        {
+            Console.WriteLine($"Error al llamar al turno {turnoACtualizar.TurnoID}.");
+        }
     }
 
     private async Task AtenderCliente(int turnoId)
     {
-        // 1. Lógica real: Marcar el turno como 'En Atención' en la base de datos
-        var turnoService = ScopedServices.GetRequiredService<TurnoService>();
-        // Asumiendo que existe un método para actualizar el estado del turno
-        // await turnoService.CambiarEstadoAsync(turnoId, "En Atención");
-
-        // 2. Redirección a la pantalla de prefactura
-        // Enviamos el ID del Turno, la página de PreFactura sabrá qué cliente buscar.
-         navigationManager.NavigateTo($"/prefactura/{turnoId}");
+        var success = await turnoService.CambiarEstadoAsync(turnoId, "En Atención");
+        if (success)
+        {
+            TurnosEnEspera.RemoveAll(t => t.TurnoID == turnoId);
+            StateHasChanged();
+            navigationManager.NavigateTo($"/prefactura/{turnoId}");
+        }
+        else
+        {
+            Console.WriteLine($"Error al cambiar el estado del turno {turnoId} a 'En Atención'.");
+        }
     }
 
-    // --- LIMPIEZA ---
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-
-        _isDisposed = true; // Aseguramos que el flag esté en true
-        if (_queueTimer != null)
+        if (disposing)
         {
-            _queueTimer.Elapsed -= OnQueueTimerElapsed; // Quitamos el handler
-            _queueTimer.Stop();
-            _queueTimer.Dispose();
-            _queueTimer = null;
+            _isDisposed = true;
+            if (_queueTimer != null)
+            {
+                _queueTimer.Elapsed -= OnQueueTimerElapsed;
+                _queueTimer.Stop();
+                _queueTimer.Dispose();
+                _queueTimer = null;
+            }
         }
-
+        base.Dispose(disposing);
     }
 }

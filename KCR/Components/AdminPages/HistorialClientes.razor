@@ -6,24 +6,24 @@
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 @inject ClienteService clienteService
+@inject PreFacturaService preFacturaService 
+@inject EmpleadoService empleadoService 
 
 <div class="lista-empleados-page">
-    @* Reutilizamos la clase para el layout general (margen) *@
     <div class="content">
         <div class="list-card">
 
-            @* 1. TÍTULO: Historial de Servicios y Clientes *@
             <h1 class="list-title">HISTORIAL DE SERVICIOS Y CLIENTES</h1>
 
-            @* 2. BARRA DE FILTROS Y BÚSQUEDA *@
             <div class="top-toolbar">
                 <div class="filter-group">
                     <label for="filter-select">Filtrar por</label>
                     <select id="filter-select" class="form-select" @bind="Filtro">
                         <option value="">Seleccione</option>
                         <option value="Cliente">Cliente</option>
-                        <option value="Servicio">Servicio</option>
-                        @* Añade más opciones si es necesario (ej. Fecha, ID de Servicio) *@
+                        <option value="FacturaID">ID Factura</option>
+                        <option value="Empleado">Empleado</option>
+                        <option value="Estado">Estado</option>
                     </select>
                 </div>
                 <div class="search-group">
@@ -35,41 +35,45 @@
                 </div>
             </div>
 
-            @* 3. TABLA DE HISTORIAL *@
             <div class="table-container">
                 <table class="empleados-table">
-                    @* Reutilizamos la clase de tabla (empleados-table) *@
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Cedula</th>
-                            <th>Correo</th>
-                            <th>Telefono</th>
-                            <th>Fecha</th>
-                            <th>Acciones</th>
+                            <th>ID F.</th> 
+                            <th>CLIENTE</th>
+                            <th>FECHA</th>
+                            <th>ESTADO</th>
+                            <th>EMPLEADO</th>
+                            <th>TOTAL</th> 
+                            <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var cliente in clientes)
+                        @if (Historial.Any())
                         {
-                            <tr>
-                                <td>@cliente.IdCliente</td>
-                                <td>@cliente.Nombres</td>
-                                <td>@cliente.Cedula</td>
-                                <td>@cliente.Correo</td>
-                                <td>@cliente.Telefono</td>
-                                <td>@cliente.Fecha.ToString("dd/MM/yyyy hh:mm")</td>
-                               @* <td>
-                                    <button class="btn-action btn-modifica" @onclick="() => VerDetalle(cliente.IdCliente)">Ver Detalle</button>
-                                </td>*@
-                            </tr>
+                            @foreach (var item in Historial)
+                            {
+                                <tr key="@item.IdPreFactura">
+                                    <td>@item.IdPreFactura</td>
+                                    <td>@item.NombreCliente</td>
+                                    <td>@item.Fecha.ToString("dd/MM/yyyy hh:mm")</td>
+                                    <td><span class="status-@item.Estado.ToLower()">@item.Estado</span></td>
+                                    <td>@item.NombreEmpleado</td>
+                                    <td class="text-right">@item.Total.ToString("C2")</td>
+                                    <td>
+                                        <button class="btn-action btn-modifica" @onclick="() => VerDetalle(item.IdPreFactura)">Ver Detalle</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="7" class="text-center">No se encontraron registros de facturas.</td></tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-            @* 4. BARRA INFERIOR CON BOTÓN VOLVER *@
             <div class="bottom-bar">
                 <button class="btn-action btn-volver" @onclick="Volver">
                     <span class="icon">⬅️</span> Volver
@@ -80,33 +84,107 @@
 </div>
 
 @code {
-    [Inject]
-    public NavigationManager NavigationManager { get; set; }
-
     public string Filtro { get; set; } = string.Empty;
     public string ValorFiltro { get; set; } = string.Empty;
-    private List<Clientes> clientes { get; set; } = new List<Clientes>();
+
+    private List<HistorialViewModel> Historial { get; set; } = new();
+    private List<PreFacturas> preFacturasDB { get; set; } = new();
+
 
     protected override async Task OnInitializedAsync()
     {
-        clientes = await clienteService.Listar(c => c.IdCliente > 0);
+        preFacturasDB = await preFacturaService.Listar(p => p.IdPreFactura > 0);
+
+        await GenerarHistorialViewModel(preFacturasDB);
     }
+
+
+    private async Task GenerarHistorialViewModel(List<PreFacturas> facturas)
+    {
+        var historialTemp = new List<HistorialViewModel>();
+
+        foreach (var factura in facturas)
+        {
+
+            var cliente = factura.IdCliente.HasValue ? await clienteService.Buscar(factura.IdCliente.Value) : null;
+            var empleado = await empleadoService.Buscar(factura.IdEmpleado);
+
+            decimal totalCalculado = factura.PreFacturaDetalles.Sum(d => d.Cantidad * d.PrecioUnitario);
+
+            historialTemp.Add(new HistorialViewModel
+            {
+                IdPreFactura = factura.IdPreFactura,
+                NombreCliente = cliente?.Nombres ?? factura.NombreCliente ?? "Cliente Eliminado",
+                NombreEmpleado = empleado?.Nombre ?? "Empleado Desconocido",
+                Fecha = factura.Fecha,
+                Estado = factura.Estado,
+                Total = totalCalculado
+            });
+        }
+        Historial = historialTemp;
+    }
+
+
 
     public async Task Buscar()
     {
-        if (ValorFiltro.Trim() != "")
+        if (string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            if (Filtro == nameof(Clientes.Nombres)) clientes = await clienteService.Listar(c => c.Nombres.ToLower().Contains(ValorFiltro.ToLower()));
-            else if (Filtro == nameof(Clientes.Cedula)) clientes = await clienteService.Listar(c => c.Cedula.ToLower().Contains(ValorFiltro.ToLower()));
-            else if (Filtro == nameof(Clientes.Telefono)) clientes = await clienteService.Listar(c => c.Telefono.ToLower().Contains(ValorFiltro.ToLower()));
-            else if (Filtro == nameof(Clientes.Correo)) clientes = await clienteService.Listar(c => c.Correo.ToLower().Contains(ValorFiltro.ToLower()));
-            else if (Filtro == nameof(Clientes.IdCliente) && int.TryParse(ValorFiltro, out var Id)) clientes = await clienteService.Listar(c => c.IdCliente == Id);
+            await OnInitializedAsync();
+            return;
         }
+
+        var valorBusqueda = ValorFiltro.ToLower().Trim();
+        var facturasFiltradas = preFacturasDB;
+
+        if (Filtro == "Cliente")
+        {
+            var clientesMatch = await clienteService.Listar(c => c.Nombres.ToLower().Contains(valorBusqueda));
+            var idsClientes = clientesMatch.Select(c => c.IdCliente).ToList();
+            facturasFiltradas = preFacturasDB.Where(p => p.IdCliente.HasValue && idsClientes.Contains(p.IdCliente.Value)).ToList();
+        }
+        else if (Filtro == "Empleado")
+        {
+            var empleadosMatch = await empleadoService.Listar(e => e.Nombre.ToLower().Contains(valorBusqueda));
+            var idsEmpleados = empleadosMatch.Select(e => e.IdEmpleado).ToList();
+            facturasFiltradas = preFacturasDB.Where(p => idsEmpleados.Contains(p.IdEmpleado)).ToList();
+        }
+        else if (Filtro == "FacturaID")
+        {
+            if (int.TryParse(ValorFiltro, out var id))
+                facturasFiltradas = preFacturasDB.Where(p => p.IdPreFactura == id).ToList();
+        }
+        else if (Filtro == "Estado")
+        {
+            facturasFiltradas = preFacturasDB.Where(p => p.Estado.ToLower().Contains(valorBusqueda)).ToList();
+        }
+        else
+        {
+            facturasFiltradas = preFacturasDB;
+        }
+
+        await GenerarHistorialViewModel(facturasFiltradas);
     }
 
+    private void VerDetalle(int id)
+    {
+
+        navigationManager.NavigateTo($"/detalle-factura/{id}");
+    }
 
     private void Volver()
     {
         navigationManager.NavigateTo("/"); 
+    }
+
+
+    public class HistorialViewModel
+    {
+        public int IdPreFactura { get; set; }
+        public string NombreCliente { get; set; } = string.Empty;
+        public string NombreEmpleado { get; set; } = string.Empty;
+        public DateTime Fecha { get; set; }
+        public string Estado { get; set; } = string.Empty;
+        public decimal Total { get; set; }
     }
 }

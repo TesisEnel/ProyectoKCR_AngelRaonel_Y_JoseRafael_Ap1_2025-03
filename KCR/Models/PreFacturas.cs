@@ -19,6 +19,13 @@ public class PreFacturas
     public int? IdCliente { get; set; }
     public Clientes? Clientes { get; set; }
 
+    [ForeignKey("Empleados")]
+    public int IdEmpleado { get; set; }
+    public Empleados Empleado { get; set; }
+    [ForeignKey("Turnos")]
+    public int IdTurno { get; set; }
+    public Turnos Turno { get; set; }
+
     // Relaciones
     public ICollection<PreFacturaDetalles> PreFacturaDetalles { get; set; } = new List<PreFacturaDetalles>();
 }

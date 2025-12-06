@@ -1,7 +1,7 @@
 ﻿@page "/prefactura/{TurnoId:int}"
 @layout ClientLayout
 
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 @inject TurnoService turnoService
 @inject PreFacturaService preFacturaService
 @rendermode InteractiveServer
@@ -128,29 +128,6 @@
                         </tbody>
                     </table>
 
-                    <div class="tbody-scroll-container">
-                        <table class="items-table body-scroll">
-                            <tbody>
-                                @foreach (var item in PreFacturaItems)
-                                {
-                                    <tr key="@item.Id">
-                                        <td>@item.Description</td>
-                                        <td class="col-cant">
-                                            <input type="number"
-                                                   @bind="item.Quantity"
-                                                   min="1"
-                                                   class="qty-input"
-                                                   @bind:after="CalculateTotals" />
-                                        </td>
-                                        <td class="col-price">@item.Price.ToString("C2", culturaDO)</td>
-                                        <td class="col-total">@item.Total.ToString("C2", culturaDO)</td>
-                                        <td><span class="delete-icon" @onclick="() => RemoveItem(item.Id)">×</span></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
                 </div>
             </div>
         </div>
@@ -165,13 +142,13 @@
     private Turnos? clienteTurno;
     private string searchQuery = string.Empty;
 
-    // CAMBIO: Listas ahora usan el modelo real
     private List<PreFacturaDetalles> searchResults = new();
     private List<PreFacturaDetalles> PreFacturaItems = new();
 
     private readonly System.Globalization.CultureInfo culturaDO = new("es-DO");
 
-    // Cálculo de totales basado en propiedades de PreFacturaDetalles
+    private string AreaActual => clienteTurno?.Servicios?.Nombre ?? "Turnos";
+
     private decimal Subtotal => PreFacturaItems.Sum(i => i.Cantidad * i.PrecioUnitario);
     private decimal ITBIS => Subtotal * 0.18M;
     private decimal Total => Subtotal + ITBIS;
@@ -182,6 +159,7 @@
         clienteTurno = await turnoService.Buscar(TurnoId);
         isLoading = false;
     }
+
 
     private async Task SearchItemsAsync()
     {
@@ -247,8 +225,10 @@
             IdCliente = clienteTurno.Clientes.IdCliente,
             NombreCliente = clienteTurno.Clientes.Nombres,
             Fecha = DateTime.Now,
-            Estado = "Pendiente",
-            Total = this.Total
+            Estado = "Pendiente", 
+            Total = this.Total,
+            IdTurno = this.TurnoId,
+            PreFacturaDetalles = new List<PreFacturaDetalles>()
         };
 
         foreach (var item in PreFacturaItems)
@@ -266,11 +246,32 @@
             nuevaPreFactura.PreFacturaDetalles.Add(detalleLimpio);
         }
 
+        var resultadoGuardado = await preFacturaService.Guardar(nuevaPreFactura);
+
+        if (resultadoGuardado)
+        {
+            await turnoService.CambiarEstadoAsync(TurnoId, "Pre-Facturado");
+            navigationManager.NavigateTo($"/empleado/{AreaActual}");
+        }
+        else
+        {
+            Console.WriteLine("Error al guardar la Pre-Factura.");
+        }
+    }
+}
+  PrecioUnitario = item.PrecioUnitario,
+                Servicios = null,
+                Materiales = null
+            };
+
+            nuevaPreFactura.PreFacturaDetalles.Add(detalleLimpio);
+        }
+
         var resultado = await preFacturaService.Guardar(nuevaPreFactura);
 
         if (resultado)
         {
-            NavigationManager.NavigateTo($"/caja/{TurnoId}");
+            navigationManager.NavigateTo($"/empleado/{Area}");
         }
     }
 }

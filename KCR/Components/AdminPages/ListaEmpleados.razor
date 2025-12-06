@@ -3,9 +3,12 @@
 
 @page "/lista-empleados"
 
+@using KCR.Models
+@using KCR.Services
 
 @layout MainLayout
 @inject NavigationManager navigationManager
+@inject EmpleadoService empleadoService
 @rendermode InteractiveServer
 
 <div class="lista-empleados-page">
@@ -31,37 +34,54 @@
                         <span class="search-icon">🔍</span>
                     </div>
                 </div>
+                <div class="button-group">
+                    <button class="btn-action btn-registrar" @onclick="RegistrarNuevo">
+                        <span class="icon">➕</span> Nuevo Empleado
+                    </button>
+                </div>
             </div>
 
             <div class="table-container">
-                <table class="empleados-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Cédula</th>
-                            <th>Cargo</th>
-                            <th>Usuario</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var empleado in EmpleadosFiltrados)
-                        {
+
+                @if (isLoading)
+                {
+                    <p class="loading-message">Cargando listado de empleados...</p>
+                }
+                else if (!EmpleadosFiltrados.Any())
+                {
+                    <p class="no-results-message">No se encontraron empleados. Intente ajustar la búsqueda o registre uno nuevo.</p>
+                }
+                else
+                {
+                    <table class="empleados-table">
+                        <thead>
                             <tr>
-                                <td>@empleado.IdEmpleado</td>
-                                <td>@empleado.Nombre</td>
-                                <td>@empleado.Cedula</td>
-                                <td>@empleado.Cargo</td>
-                                <td>@empleado.Usuario</td>
-                                <td>
-                                    <button class="btn-action btn-modificar" @onclick="() => Modificar(empleado.IdEmpleado)">Modificar</button>
-                                    <button class="btn-action btn-eliminar" @onclick="() => Eliminar(empleado.IdEmpleado)">Eliminar</button>
-                                </td>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Cédula</th>
+                                <th>Cargo</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var empleado in EmpleadosFiltrados)
+                            {
+                                <tr>
+                                    <td>@empleado.IdEmpleado</td>
+                                    <td>@empleado.Nombre</td>
+                                    <td>@empleado.Cedula</td>
+                                    <td>@empleado.Cargo</td>
+                                    <td>@empleado.Usuario</td>
+                                    <td>
+                                        <button class="btn-action btn-modificar" @onclick="() => Modificar(empleado.IdEmpleado)">Modificar</button>
+                                        <button class="btn-action btn-eliminar" @onclick="() => Eliminar(empleado.IdEmpleado)">Eliminar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
             </div>
 
             <div class="bottom-bar">
@@ -74,81 +94,119 @@
 </div>
 
 @code {
-    [Inject]
-    public NavigationManager NavigationManager { get; set; }
+    private string ValorFiltro { get; set; } = ""; 
+    private string Filtro { get; set; } = ""; 
 
-    private string FiltroSeleccionado { get; set; } = "";
-    private string TerminoBusqueda { get; set; } = "";
-    private List<EmpleadoModelo> EmpleadosFiltrados => AplicarFiltroYBusqueda();
+    private List<Empleados> Empleados = new();
+    private bool isLoading = true;
 
-    public class EmpleadoModelo
+    private List<Empleados> EmpleadosFiltrados => AplicarFiltroYBusqueda();
+
+
+    protected override async Task OnInitializedAsync()
     {
-        public string IdEmpleado { get; set; }
-        public string Nombre { get; set; }
-        public string Cedula { get; set; }
-        public string Cargo { get; set; }
-        public string Usuario { get; set; }
-        public string Clave { get; set; }
+        await CargarEmpleados();
     }
 
-    private List<EmpleadoModelo> Empleados = new List<EmpleadoModelo>
+    private async Task CargarEmpleados()
     {
-        new EmpleadoModelo { IdEmpleado = "E001", Nombre = "Juan Pérez", Cedula = "402-XXXXXXX-X", Cargo = "Diseñador", Usuario = "jperez" },
-        new EmpleadoModelo { IdEmpleado = "E002", Nombre = "Maria Gómez", Cedula = "001-XXXXXXX-X", Cargo = "Cajero", Usuario = "mgomez" },
-        new EmpleadoModelo { IdEmpleado = "E003", Nombre = "Carlos Ruiz", Cedula = "223-XXXXXXX-X", Cargo = "Supervisor", Usuario = "cruiz" }
-    };
+        isLoading = true;
+        try
+        {
+            Empleados = await empleadoService.ListarTodosAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar empleados: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 
-    // --- Lógica de Búsqueda y Filtro ---
-    private List<EmpleadoModelo> AplicarFiltroYBusqueda()
+
+    private List<Empleados> AplicarFiltroYBusqueda()
     {
         var lista = Empleados.AsEnumerable();
+        var textoBusqueda = ValorFiltro.Trim().ToLower();
 
-        if (!string.IsNullOrWhiteSpace(TerminoBusqueda))
+        if (!string.IsNullOrWhiteSpace(textoBusqueda))
         {
-            var termino = TerminoBusqueda.ToLower();
-            lista = lista.Where(e => e.Nombre.ToLower().Contains(termino) ||
-                                     e.IdEmpleado.ToLower().Contains(termino) ||
-                                     e.Cargo.ToLower().Contains(termino));
+            if (Filtro == "Nombre")
+            {
+                lista = lista.Where(e => e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "Cargo")
+            {
+                lista = lista.Where(e => e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "IdEmpleado")
+            {
+                // Manejo seguro para ID (entero)
+                if (int.TryParse(ValorFiltro.Trim(), out int idBusqueda))
+                {
+                    lista = lista.Where(e => e.IdEmpleado == idBusqueda);
+                }
+                else
+                {
+                    return new List<Empleados>();
+                }
+            }
+            else 
+            {
+                lista = lista.Where(e => (e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda)) ||
+                                         (e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda)) ||
+                                          e.IdEmpleado.ToString().Contains(textoBusqueda));
+            }
         }
 
-        // Puedes añadir lógica de filtro por `FiltroSeleccionado` si lo deseas.
-        // Ejemplo: if (FiltroSeleccionado == "Cargo") { lista = lista.OrderBy(e => e.Cargo); }
+
+        if (Filtro == "Cargo")
+        {
+            lista = lista.OrderBy(e => e.Cargo);
+        }
+        else if (Filtro == "IdEmpleado")
+        {
+            lista = lista.OrderBy(e => e.IdEmpleado);
+        }
+
 
         return lista.ToList();
     }
 
-    public async Task Eliminar(int id)
-    {
-        // Esto forzará la re-renderización y la aplicación del filtro
-        StateHasChanged();
-    }
-    // ------------------------------------
 
     private void RegistrarNuevo()
     {
-        NavigationManager.NavigateTo("/registro-empleado");
+        navigationManager.NavigateTo("/registro-empleado");
     }
 
-    private void Modificar(string id)
+    private void Modificar(int id)
     {
-        NavigationManager.NavigateTo($"/modificar-empleado/{id}");
+        navigationManager.NavigateTo($"/modificar-empleado/{id}");
     }
 
-    private void Eliminar(string id)
+    private async Task Eliminar(int id)
     {
-        Console.WriteLine($"Eliminando empleado con ID: {id}");
-        var empleadoAEliminar = Empleados.FirstOrDefault(e => e.IdEmpleado == id);
-        if (empleadoAEliminar != null)
+        Console.WriteLine($"Intentando eliminar empleado con ID: {id}");
+
+        if (await empleadoService.Eliminar(id))
         {
-            Empleados.Remove(empleadoAEliminar);
-            StateHasChanged(); // Para actualizar la tabla
+            await CargarEmpleados();
+        }
+        else
+        {
+            Console.WriteLine("Error al intentar eliminar el empleado.");
         }
     }
 
+    private void Buscar()
+    {
+    }
 
 
     private void Volver()
     {
-        navigationManager.NavigateTo("/");  
+        navigationManager.NavigateTo("/");
     }
 }
