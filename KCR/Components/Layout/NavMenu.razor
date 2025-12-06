@@ -18,19 +18,9 @@
     <img src="/Img-Vector/Union-1.svg" class="sidebar-decor auth-decor" aria-hidden="true" />
 
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
 
-        <AuthorizeView>
+                <AuthorizeView Roles="Administrador">
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="/registro-empleado">
                         <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Registrar Empleado
@@ -42,8 +32,39 @@
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link"href="/historial-clientes">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Historial de Clientes    
+                    <NavLink class="nav-link" href="/historial-clientes">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Historial de Clientes
+                    </NavLink>
+                </div>
+            </Authorized>
+            </AuthorizeView>
+
+        <AuthorizeView Roles="EmpleadoExpress">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="empleado/SERVICIO EXPRESS">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion 
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="EmpleadoDE">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="empleado/DISEÑO Y EDICIÓN">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">

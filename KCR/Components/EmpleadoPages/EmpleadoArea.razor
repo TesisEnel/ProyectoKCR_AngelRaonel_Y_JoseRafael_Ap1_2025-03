@@ -1,5 +1,8 @@
 ﻿@page "/empleado/{Area}"
 @layout ClientLayout
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "EmpleadoExpress, EmpleadoDE")]
+
 @inherits OwningComponentBase<TurnoService>
 @inject NavigationManager navigationManager
 @inject TurnoService turnoService 

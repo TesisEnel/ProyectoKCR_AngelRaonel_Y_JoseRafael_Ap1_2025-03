@@ -1,5 +1,7 @@
 ﻿@page "/prefactura/{TurnoId:int}"
 @layout ClientLayout
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "EmpleadoExpress, EmpleadoDE")]
 
 @inject NavigationManager navigationManager
 @inject TurnoService turnoService
