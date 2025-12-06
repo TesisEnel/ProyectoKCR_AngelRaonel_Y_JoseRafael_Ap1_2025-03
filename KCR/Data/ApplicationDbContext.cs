@@ -57,7 +57,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
                 // OTROS SERVICIOS
                 new Servicios { IdServicio = 16, Nombre = "ESCANER", Precio = 15.00 },
-                new Servicios { IdServicio = 17, Nombre = "DISEÑO", Precio = 500.00 }
+                new Servicios { IdServicio = 17, Nombre = "DISEÑO", Precio = 500.00 },
+                new Servicios { IdServicio = 18, Nombre = "SERVICIO EXPRESS", Precio = 0.00 },
+                new Servicios { IdServicio = 19, Nombre = "DISEÑO Y EDICIÓN", Precio = 0.00 }
             );
         });
 

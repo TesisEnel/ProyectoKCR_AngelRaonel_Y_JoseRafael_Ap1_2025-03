@@ -259,19 +259,3 @@
         }
     }
 }
-  PrecioUnitario = item.PrecioUnitario,
-                Servicios = null,
-                Materiales = null
-            };
-
-            nuevaPreFactura.PreFacturaDetalles.Add(detalleLimpio);
-        }
-
-        var resultado = await preFacturaService.Guardar(nuevaPreFactura);
-
-        if (resultado)
-        {
-            navigationManager.NavigateTo($"/empleado/{Area}");
-        }
-    }
-}

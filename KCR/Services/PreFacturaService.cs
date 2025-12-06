@@ -19,14 +19,10 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
         await using var contexto = await DbFactory.CreateDbContextAsync();
         foreach (var item in detalle)
         {
-            // --- AGREGA ESTE BLOQUE ---
-            // Si no hay ID de Material (es null o 0), es un servicio.
-            // No hacemos nada y pasamos al siguiente.
             if (item.IdMaterial == null || item.IdMaterial <= 0)
             {
                 continue;
             }
-            // --------------------------
 
             var material = await contexto.materiales.SingleAsync(m => m.IdMaterial == item.IdMaterial);
 
@@ -101,6 +97,18 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
             .ToListAsync();
     }
 
+    public async Task<int?> BuscarIdServicioPorNombre(string nombreServicio)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+
+        string lowerNombre = nombreServicio.ToLower();
+
+        var servicio = await contexto.servicios
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Nombre != null && s.Nombre.ToLower() == lowerNombre);
+
+        return servicio?.IdServicio;
+    }
     public async Task<List<Servicios>> ListarServicios()
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();

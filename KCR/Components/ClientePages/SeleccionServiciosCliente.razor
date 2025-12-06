@@ -8,6 +8,7 @@
 
 @inject ClienteService clienteService
 @inject TurnoService turnoService
+@inject PreFacturaService preFacturaService // ⬅️ Servicio re-inyectado
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
@@ -45,7 +46,6 @@
         <button class="btn-volver" @onclick="IrAtras">VOLVER</button>
     </div>
 
-    <!-- Modal para Servicio Exprés -->
     @if (mostrarModalExpres)
     {
         <div class="modal-backdrop" @onclick="CerrarModal">
@@ -80,7 +80,6 @@
         </div>
     }
 
-    <!-- Modal para Servicio de Diseño -->
     @if (mostrarModalDiseno)
     {
         <div class="modal-backdrop" @onclick="CerrarModal">
@@ -115,7 +114,6 @@
         </div>
     }
 
-    <!-- Modal Ticket -->
     @if (mostrarTicket)
     {
         <div class="modal-backdrop" @onclick="CerrarModal">
@@ -182,21 +180,17 @@
     public string? CorreoRecibido { get; set; }
 
 
-    // Propiedades para mostrar
     public string NombreParaMostrar => string.IsNullOrWhiteSpace(NombreRecibido) ? "Cliente" : NombreRecibido;
     public string TelefonoParaMostrar => string.IsNullOrEmpty(TelefonoRecibido) ? "---" : TelefonoRecibido;
 
-    // Estados de la UI
     private bool mostrarModalExpres = false;
     private bool mostrarModalDiseno = false;
     private bool mostrarTicket = false;
 
-    // Datos del Turno
     private string areaSeleccionada = "";
     private string servicioSeleccionado = "";
     private string codigoTurno = "";
 
-    // MÉTODOS
 
     private void AbrirModal(bool esExpres)
     {
@@ -221,15 +215,23 @@
         mostrarTicket = false;
     }
 
-    private void ElegirServicio(string servicio)
+    private async Task ElegirServicio(string servicio)
     {
         servicioSeleccionado = servicio;
 
-        string prefijoArea = areaSeleccionada == "SERVICIO EXPRESS" ? "SE" : "DE";
-        string prefijoServicio = (servicio == "SERVICIOS MULTIPLES") ? "M" : servicio.Substring(0, 1);
-        int numeroRandom = new Random().Next(1, 99);
+        string areaNombre = areaSeleccionada;
+        string prefijo = areaNombre.Substring(0, 1).ToUpper();
 
-        codigoTurno = $"{prefijoArea}-{prefijoServicio}-{numeroRandom:D2}";
+        if (areaNombre.Contains("EXPRESS", StringComparison.OrdinalIgnoreCase))
+        {
+            prefijo = "SE";
+        }
+        else if (areaNombre.Contains("DISEÑO", StringComparison.OrdinalIgnoreCase))
+        {
+            prefijo = "DE";
+        }
+
+        codigoTurno = await turnoService.GenerarSiguienteNumeroTurno(prefijo);
 
         mostrarModalExpres = false;
         mostrarModalDiseno = false;
@@ -238,7 +240,18 @@
 
     private async Task GenerarTicketFinal()
     {
-        // Creamos el cliente con los datos recibidos y el ID que nos pasó la pantalla anterior
+        string nombreServicioDB = areaSeleccionada;
+
+        var idServicioFinal = await preFacturaService.BuscarIdServicioPorNombre(nombreServicioDB);
+
+        if (idServicioFinal == null)
+        {
+            Console.WriteLine($"Error: No se encontró el Id para el área '{nombreServicioDB}'. Asegúrese de que existe en la tabla Servicios.");
+            mostrarTicket = false; 
+            StateHasChanged();
+            return;
+        }
+
         var cliente = new Clientes
         {
             IdCliente = IdClienteRecibido,
@@ -246,47 +259,50 @@
             Cedula = CedulaRecibida,
             Telefono = TelefonoRecibido,
             Correo = CorreoRecibido,
-            Fecha = DateTime.Now // Solo actualizamos la fecha de última interacción.
+            Fecha = DateTime.Now
         };
-        // Guardamos (esto actualizará la fecha si el cliente ya existe gracias al IdCliente)
-        var guardado = await clienteService.Guardar(cliente);
 
-        if (guardado)
+        var guardadoCliente = await clienteService.Guardar(cliente);
+
+        if (!guardadoCliente)
         {
-            // Si el cliente era nuevo (IdCliente 0) y fue insertado, necesitamos su nuevo ID.
-            // Si ya tenía ID, lo usamos directamente.
-            int idClienteFinal = cliente.IdCliente;
+            Console.WriteLine("Error al guardar o actualizar el cliente.");
+            return;
+        }
 
-            if (idClienteFinal == 0 && !string.IsNullOrEmpty(cliente.Cedula))
+        int idClienteFinal = cliente.IdCliente;
+
+        if (idClienteFinal == 0 && !string.IsNullOrEmpty(cliente.Cedula))
+        {
+            var clienteBuscado = await clienteService.BuscarPorCedula(cliente.Cedula);
+            idClienteFinal = clienteBuscado?.IdCliente ?? 0;
+        }
+
+        if (idClienteFinal > 0)
+        {
+            Turnos turno = new Turnos
             {
-                var clienteBuscado = await clienteService.BuscarPorCedula(cliente.Cedula);
-                if (clienteBuscado != null)
-                {
-                    idClienteFinal = clienteBuscado.IdCliente;
-                }
-            }
+                IdCliente = idClienteFinal,
+                IdServicio = idServicioFinal.Value, 
+                NumTurno = codigoTurno,
+                Fecha = DateTime.Now,
+                Estado = "En Espera"
+            };
 
-            if (idClienteFinal > 0)
+            var turnoGuardado = await turnoService.Guardar(turno);
+
+            if (turnoGuardado)
             {
-                Turnos turno = new Turnos();
-                turno.IdCliente = idClienteFinal;
-                turno.NumTurno = codigoTurno;
-                turno.Fecha = DateTime.Now;
-                // Dejamos IdServicio nulo como solicitaste
-
-                await turnoService.Guardar(turno);
-
-                // Redirigir a inicio después de guardar
                 navigationManager.NavigateTo("/cliente");
             }
             else
             {
-                Console.WriteLine("Error: No se pudo obtener el ID del cliente para el turno.");
+                Console.WriteLine("Error: Falló el registro del Turno en la base de datos.");
             }
         }
         else
         {
-            Console.WriteLine("Error al guardar el cliente.");
+            Console.WriteLine("Error: No se pudo obtener el ID del cliente para el turno.");
         }
     }
 

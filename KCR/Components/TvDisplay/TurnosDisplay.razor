@@ -1,0 +1,117 @@
+﻿@page "/turno/display"
+@layout ClientLayout
+
+@inject TurnoService turnoService
+@rendermode InteractiveServer
+
+@using KCR.Models
+@using System.Timers
+@implements IDisposable 
+
+<div class="public-queue-display">
+    <h1 class="display-title">TURNOS EN ATENCIÓN</h1>
+
+    <div class="current-turn-container">
+        @if (turnoActual != null)
+        {
+            <div class="current-turn-card current-attention">
+                <span class="label">ATENDIENDO AHORA</span>
+                <span class="turn-number highlight">@turnoActual.NumTurno</span>
+                <span class="service-name">(@turnoActual.Servicios?.Nombre)</span>
+            </div>
+        }
+        else
+        {
+            <div class="current-turn-card waiting-message">
+                <span class="label">¡BIENVENIDOS!</span>
+                <span class="turn-number">Esperando próxima llamada...</span>
+            </div>
+        }
+    </div>
+
+
+    <div class="waiting-queue-list">
+        <h2 class="list-title">Próximos Turnos en Espera:</h2>
+
+        @if (turnosEnEspera.Any())
+        {
+            <div class="table-scroll-wrapper">
+                @* Usamos la clase del empleado para el scroll *@
+                <table class="queue-table public-queue-table">
+                    @* Usamos la clase del empleado para la tabla *@
+                    <thead>
+                        <tr>
+                            <th class="col-num">TURNO</th>
+                            <th class="col-service">SERVICIO</th>
+                            <th class="col-wait">CLIENTE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var turno in turnosEnEspera.OrderBy(t => t.IdTurno).Take(8)) @* Mostramos hasta 8 en la cola *@
+                        {
+                            <tr key="@turno.IdTurno">
+                                <td class="queue-num">@turno.NumTurno</td>
+                                <td class="queue-service">@turno.Servicios?.Nombre</td>
+                                <td class="queue-client">@turno.Clientes?.Nombres</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="no-queue">No hay clientes esperando en este momento.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private Turnos? turnoActual;
+    private List<Turnos> turnosEnEspera = new();
+    private System.Timers.Timer? _queueTimer;
+    private bool _isDisposed = false;
+    private const int POLL_INTERVAL_MS = 3000; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadQueueData();
+
+        _queueTimer = new System.Timers.Timer(POLL_INTERVAL_MS);
+        _queueTimer.Elapsed += OnQueueTimerElapsed;
+        _queueTimer.AutoReset = true;
+        _queueTimer.Enabled = true;
+    }
+
+    private void OnQueueTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        InvokeAsync(async () =>
+        {
+            if (!_isDisposed)
+            {
+                await LoadQueueData();
+                StateHasChanged();
+            }
+        });
+    }
+
+    private async Task LoadQueueData()
+    {
+        var turnosAtendiendo = await turnoService.Listar(t => t.Estado == "En Atención" || t.Estado == "En Llamada");
+
+        turnoActual = turnosAtendiendo.OrderByDescending(t => t.Fecha).FirstOrDefault();
+
+        turnosEnEspera = await turnoService.Listar(t => t.Estado == "En Espera");
+    }
+
+    public void Dispose()
+    {
+        _isDisposed = true;
+        if (_queueTimer != null)
+        {
+            _queueTimer.Elapsed -= OnQueueTimerElapsed;
+            _queueTimer.Stop();
+            _queueTimer.Dispose();
+        }
+    }
+}

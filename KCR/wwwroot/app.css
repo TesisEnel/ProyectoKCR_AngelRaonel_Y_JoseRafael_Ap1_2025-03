@@ -1432,7 +1432,7 @@ h1:focus {
 
 .highlight {
     font-weight: 900;
-    color: #F98700;
+    color: #fff;
     font-size: 1.1rem;
 }
 
@@ -1857,4 +1857,244 @@ h1:focus {
     bottom: 10%;
     right: 10%;
     width: 100px;
+}
+
+/*DISPLAY*/
+
+
+/* ========================================================= */
+/* --- 1. VARIABLES GLOBALES --- */
+/* ========================================================= */
+:root {
+    --color-primary-orange: #ff7f00; /* Naranja Brillante */
+    --color-secondary-dark: #4a4a4a; /* Gris Oscuro */
+    --color-background-light: #fefefe; /* Fondo general */
+    --color-card-bg-white: #ffffff; /* Fondo de tarjetas */
+    --color-text-light: #f8f9fa; /* Texto claro */
+    --color-header-bg: #e6e6e6; /* Gris claro para encabezados */
+    --color-queue-hover: #fff5e6; /* Naranja muy pálido para hover */
+    --font-family: 'Arial', sans-serif;
+}
+
+/* ========================================================= */
+/* --- 2. ESTILOS BASE Y TÍTULO --- */
+/* ========================================================= */
+.public-queue-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    background-color: var(--color-background-light);
+    min-height: 100vh;
+    font-family: var(--font-family);
+}
+
+.display-title {
+    font-size: 3em;
+    font-weight: 700;
+    color: var(--color-secondary-dark);
+    margin-bottom: 40px;
+    border-bottom: 4px solid var(--color-primary-orange);
+    padding-bottom: 10px;
+}
+
+/* ========================================================= */
+/* --- 3. TARJETA DE TURNO ACTUAL (En Atención / Espera) --- */
+/* ========================================================= */
+.current-turn-container {
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 50px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #ff9900 0%, var(--color-primary-orange) 100%);
+    color: var(--color-text-light);
+}
+
+.current-turn-card {
+    display: flex;
+    flex-direction: column;
+    padding: 50px 30px;
+    min-height: 250px;
+    width: 100%;
+}
+
+/* ESTILO: Turro Activo */
+.current-attention {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+    .current-attention .turn-number {
+        font-size: 10em;
+        font-weight: 900;
+        text-shadow: 4px 4px 6px #ffff;
+    }
+
+/* ESTILO: Mensaje de Espera (Alineado a la derecha) */
+.waiting-message {
+    padding: 70px 30px;
+    justify-content: space-between;
+    align-items: flex-end; /* Alinea los elementos a la derecha */
+    text-align: right;
+}
+
+    .waiting-message .label {
+        align-self: flex-start; /* Mueve ¡BIENVENIDOS! a la izquierda */
+        text-align: left;
+    }
+
+    .waiting-message .turn-number {
+        font-size: 3em;
+        font-weight: 500;
+        margin-top: 50px;
+        align-self: flex-end;
+        text-align: right;
+        text-shadow: none;
+    }
+
+
+/* Estilos Comunes (Label y Service Name) */
+.current-turn-card .label {
+    font-size: 1.8em;
+    font-weight: 300;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    width: 100%;
+}
+
+.current-turn-card .service-name {
+    font-size: 2.2em;
+    font-weight: 500;
+    opacity: 0.9;
+    padding-top: 10px;
+    width: 100%;
+}
+
+.current-turn-card .turn-number {
+    display: block;
+    line-height: 1;
+    margin: 15px 0;
+    width: 100%;
+}
+
+
+/* ========================================================= */
+/* --- 4. LISTA DE ESPERA (COLA DE TARJETAS) --- */
+/* ========================================================= */
+
+.waiting-queue-list {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 20px;
+    border-radius: 10px;
+    background-color: var(--color-card-bg-white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.list-title {
+    font-size: 1.8em;
+    padding: 15px 20px;
+    color: var(--color-secondary-dark);
+    background-color: var(--color-header-bg);
+    margin-top: 0;
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-primary-orange);
+}
+
+.table-scroll-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.public-queue-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Espacio entre filas */
+    padding: 0 10px;
+}
+
+    /* Encabezado */
+    .public-queue-table thead th {
+        background-color: var(--color-card-bg-white);
+        color: var(--color-secondary-dark);
+        padding: 15px 15px 10px 15px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        font-weight: 700;
+        font-size: 1.0em;
+        border-bottom: 2px solid #ddd;
+        text-transform: uppercase;
+    }
+
+    /* Fila (Tarjeta) */
+    .public-queue-table tbody tr {
+        transition: all 0.2s ease-in-out;
+        background-color: var(--color-card-bg-white);
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        display: table-row;
+    }
+        /* Eliminar fondo alternado redundante */
+        .public-queue-table tbody tr:nth-child(even) {
+            background-color: var(--color-card-bg-white);
+        }
+
+        /* Efecto Hover */
+        .public-queue-table tbody tr:hover {
+            background-color: var(--color-queue-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    /* Celdas */
+    .public-queue-table tbody td {
+        padding: 15px;
+        border-bottom: none;
+        color: var(--color-secondary-dark);
+        font-size: 1.1em;
+        vertical-align: middle;
+    }
+
+/* Estilos Específicos de Columna */
+.queue-num {
+    font-weight: 800;
+    color: var(--color-primary-orange);
+    font-size: 1.4em;
+}
+
+.queue-service {
+    font-weight: 500;
+    color: #666;
+}
+
+.queue-client {
+    font-weight: 600;
+    color: var(--color-secondary-dark);
+}
+
+/* Anchos de columna */
+.public-queue-table .col-num {
+    width: 15%;
+}
+
+.public-queue-table .col-service {
+    width: 45%;
+}
+
+.public-queue-table .col-wait {
+    width: 40%;
+}
+
+/* Mensaje de cola vacía */
+.no-queue {
+    text-align: center;
+    color: var(--color-secondary-dark);
+    padding: 30px;
+    font-size: 1.2em;
 }
