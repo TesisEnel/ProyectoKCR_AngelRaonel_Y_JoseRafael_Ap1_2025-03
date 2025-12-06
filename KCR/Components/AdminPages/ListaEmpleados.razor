@@ -175,7 +175,7 @@
         return lista.ToList();
     }
 
-    private void Buscar()
+    public async Task Eliminar(int id)
     {
         StateHasChanged();
     }
@@ -204,6 +204,8 @@
             Console.WriteLine("Error al intentar eliminar el empleado.");
         }
     }
+
+
 
     private void Volver()
     {
