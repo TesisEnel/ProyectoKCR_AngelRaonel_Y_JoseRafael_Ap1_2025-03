@@ -1,4 +1,8 @@
-﻿html, body {
+﻿/* ========================================================================= */
+/* 0. ESTILOS BASE Y BOOTSTRAP PERSONALIZADOS */
+/* ========================================================================= */
+
+html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -12,8 +16,9 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -50,12 +55,14 @@ h1:focus {
     border-color: #929292;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);
     text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
 
@@ -63,7 +70,6 @@ h1:focus {
 /* 1. FUENTES Y DEFINICIONES GLOBALES */
 /* ========================================================================= */
 
-/* Lato-Black (Peso 900) */
 @font-face {
     font-family: 'Lato-Black';
     src: url('/fonts/Lato/Lato-Black.ttf') format('truetype');
@@ -71,7 +77,6 @@ h1:focus {
     font-style: normal;
 }
 
-/* Lato Regular (Peso 400) */
 @font-face {
     font-family: 'Lato';
     src: url('/fonts/Lato/Lato-Regular.ttf') format('truetype');
@@ -79,7 +84,6 @@ h1:focus {
     font-style: normal;
 }
 
-/* Lato Bold (Peso 700) */
 @font-face {
     font-family: 'Lato';
     src: url('/fonts/Lato/Lato-Bold.ttf') format('truetype');
@@ -87,7 +91,6 @@ h1:focus {
     font-style: normal;
 }
 
-/* --- VECTORES DECORATIVOS BASE --- */
 .vector-decor {
     position: absolute;
     z-index: 0;
@@ -119,9 +122,33 @@ h1:focus {
     width: 90px;
 }
 
+.login-plus-tl {
+    top: 20%;
+    left: 10%;
+    width: 120px;
+}
+
+.login-plus-tr {
+    top: 20%;
+    right: 10%;
+    width: 100px;
+}
+
+.login-plus-bl {
+    bottom: 10%;
+    left: 10%;
+    width: 150px;
+}
+
+.login-plus-br {
+    bottom: 10%;
+    right: 10%;
+    width: 100px;
+    opacity: 0.8;
+}
 
 /* ========================================================================= */
-/* 2. ESTILOS DE PANTALLA PRINCIPAL / BIENVENIDA */
+/* 2. PANTALLA PRINCIPAL / BIENVENIDA */
 /* ========================================================================= */
 
 .pantalla-wrapper {
@@ -140,12 +167,11 @@ h1:focus {
     max-width: 720px;
 }
 
-/* Título de Bienvenida (Estilo antiguo) */
 .welcome-title {
     margin: 0;
     font-size: 76px;
     line-height: 1;
-    color: #000000;
+    color: #000;
     font-family: 'Lato-Black', 'Lato', sans-serif;
 }
 
@@ -154,7 +180,7 @@ h1:focus {
     height: 8px;
     background: #F2994A;
     border-radius: 4px;
-    margin: 18px 0 12px 0;
+    margin: 18px 0 12px;
 }
 
 .subtitle {
@@ -166,7 +192,6 @@ h1:focus {
     border-left: 80px solid transparent;
 }
 
-/* Decor plus icons (Estilos de bienvenida) */
 .decor-plus {
     position: absolute;
     width: 76px;
@@ -191,10 +216,8 @@ h1:focus {
     .decor-plus.filled {
         width: 84px;
         height: 84px;
-        opacity: 1;
     }
 
-/* Responsive ajustes Bienvenida */
 @media (max-width: 1200px) {
     .welcome-title {
         font-size: 56px;
@@ -223,15 +246,12 @@ h1:focus {
     }
 }
 
-
 /* ========================================================================= */
-/* 3. ESTILOS DE LISTA EMPLEADOS / HISTORIAL CLIENTES */
+/* 3. LISTA EMPLEADOS / HISTORIAL CLIENTES */
 /* ========================================================================= */
 
-/* --- Contenedor de la Página --- */
 .lista-empleados-page {
     padding: 20px;
-    width: auto;
     min-height: 100vh;
     box-sizing: border-box;
 }
@@ -240,38 +260,32 @@ h1:focus {
     background-color: #E5E5E5;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
     min-height: 700px;
     overflow: hidden;
     font-family: 'Lato', sans-serif;
     padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* --- Título Naranja --- */
 .list-title {
     font-size: 1.5rem;
     font-weight: 700;
     color: #F08035;
     text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 20px 30px 10px 30px;
+    padding: 20px 30px 10px;
     margin-bottom: 0;
     border-bottom: 2px solid #ccc;
     position: relative;
     z-index: 2;
 }
 
-/* --- Barra de Filtros y Búsqueda --- */
 .top-toolbar {
     display: flex;
     gap: 30px;
     align-items: flex-end;
-    padding: 30px 30px 20px 30px;
-    margin-bottom: 0;
-    position: relative;
+    padding: 30px 30px 20px;
     z-index: 3;
 }
 
@@ -293,9 +307,9 @@ h1:focus {
     border-radius: 4px;
     font-size: 1em;
     width: 200px;
-    box-sizing: border-box;
-    background-color: #fff;
     height: 38px;
+    background-color: #fff;
+    box-sizing: border-box;
 }
 
 .search-input-container {
@@ -312,28 +326,24 @@ h1:focus {
     top: 50%;
     transform: translateY(-50%);
     color: #888;
-    pointer-events: none;
     font-size: 1.1em;
+    pointer-events: none;
 }
 
-/* --- Contenedor de la Tabla --- */
 .table-container {
-    flex-grow: inherit;
+    flex-grow: 1;
     background-color: white;
     margin: 0 30px;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
     z-index: 3;
     overflow-x: auto;
 }
 
-/* --- Tabla de Datos --- */
 .empleados-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: white;
 }
 
     .empleados-table th, .empleados-table td {
@@ -358,7 +368,6 @@ h1:focus {
         background-color: #fafafa;
     }
 
-/* --- Barra Inferior Gris --- */
 .bottom-bar {
     position: absolute;
     bottom: 0;
@@ -375,7 +384,6 @@ h1:focus {
     padding: 0 20px;
 }
 
-/* --- Botones de Acción de Tabla (Modificar/Eliminar/Volver Azul) --- */
 .btn-action {
     padding: 8px 15px;
     border: none;
@@ -389,7 +397,7 @@ h1:focus {
 }
 
 .btn-modificar {
-    background-color: #5BC0DE; /* Azul */
+    background-color: #5BC0DE;
     color: #fff;
 }
 
@@ -398,7 +406,7 @@ h1:focus {
     }
 
 .btn-eliminar {
-    background-color: #A34857; /* Rosado/Rojo */
+    background-color: #A34857;
     color: white;
 }
 
@@ -406,9 +414,8 @@ h1:focus {
         background-color: #8C3C48;
     }
 
-/* Botón Volver de Tabla (Azul Outline) */
 .btn-volver-list {
-    background-color: #ffffff;
+    background-color: #fff;
     color: #0d6efd;
     border: 2px solid #0d6efd;
     padding: 8px 16px;
@@ -418,16 +425,14 @@ h1:focus {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-left: 0;
 }
 
     .btn-volver-list:hover {
         background-color: #e7f1ff;
     }
 
-
 /* ========================================================================= */
-/* 4. ESTILOS DE FORMULARIO / REGISTRO */
+/* 4. FORMULARIO / REGISTRO */
 /* ========================================================================= */
 
 .registro-container {
@@ -436,13 +441,10 @@ h1:focus {
     justify-content: center;
     padding: 48px 32px;
     min-height: calc(100vh - 40px);
-    box-sizing: border-box;
     font-family: 'Lato', sans-serif;
 }
 
-/* Tarjeta responsiva (Estilo Formulario/Registro - Gris) */
 .form-card {
-    /* NOTA: Este estilo es sobreescrito por el form-card del client-grid más adelante */
     background-color: #D9D9D9;
     border-radius: 20px;
     width: clamp(700px, 75%, 1100px);
@@ -451,7 +453,6 @@ h1:focus {
     overflow: hidden;
 }
 
-/* Encabezado */
 .card-header-form {
     padding: 20px 32px;
     background: #EFEFEF;
@@ -465,7 +466,6 @@ h1:focus {
         color: #111;
     }
 
-/* Cuerpo */
 .card-body {
     padding: 28px 36px;
     display: flex;
@@ -488,7 +488,7 @@ h1:focus {
     }
 
     .form-row input {
-        background: #ffffff;
+        background: #fff;
         border: none;
         border-radius: 8px;
         padding: 10px 12px;
@@ -502,12 +502,10 @@ h1:focus {
     width: 120px !important;
 }
 
-/* Botón central de Modificar (Rojo/café) */
 .center-modificar {
     display: flex;
     justify-content: center;
-    margin-top: 8px;
-    margin-bottom: 8px;
+    margin: 8px 0;
 }
 
 .btn-modificar-form {
@@ -520,7 +518,6 @@ h1:focus {
     cursor: pointer;
 }
 
-/* Footer y Botones de Formulario */
 .card-footer-buttons {
     padding: 16px 32px;
     background-color: #EFEFEF;
@@ -530,7 +527,6 @@ h1:focus {
     border-top: 1px solid rgba(0,0,0,0.06);
 }
 
-/* Botón Volver de Formulario (Rojo/café oscuro) */
 .btn-volver-form {
     background-color: #B06868;
     color: white;
@@ -551,7 +547,6 @@ h1:focus {
     cursor: pointer;
 }
 
-/* Responsive Formulario */
 @media (max-width: 900px) {
     .registro-container {
         padding: 28px 18px;
@@ -585,30 +580,32 @@ h1:focus {
     }
 }
 
-
 /* ========================================================================= */
-/* 5. ESTILOS DE LAYOUT DE DOS COLUMNAS (Carrusel + Formulario Cliente) */
+/* 5. LAYOUT DOS COLUMNAS (CARRUSEL + FORMULARIO CLIENTE) */
 /* ========================================================================= */
 
 .client-grid {
     display: flex;
-    flex-direction: row;
     justify-content: center;
     align-items: center;
-    width: 100%;
     max-width: 1200px;
     gap: 80px;
     padding-top: 20px;
 }
 
-/* --- IZQUIERDA: CARRUSEL --- */
-.left-panel-carousel {
+.left-panel-carousel, .right-panel-form {
     flex: 0 0 auto;
-    width: 400px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0;
+}
+
+.left-panel-carousel {
+    width: 400px;
+}
+
+.right-panel-form {
+    width: 450px;
 }
 
 .carousel-title {
@@ -626,7 +623,6 @@ h1:focus {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    position: relative;
 }
 
 .carousel-img {
@@ -636,34 +632,19 @@ h1:focus {
     transition: opacity 0.5s ease-in-out;
 }
 
-/* --- DERECHA: FORMULARIO --- */
-.right-panel-form {
-    flex: 0 0 auto;
-    width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-}
-
-/* Título de Formulario (Sobrescribe estilos de Bienvenida) */
 .welcome-title {
     font-size: 2rem;
     font-weight: 900;
     margin-bottom: 20px;
     text-align: center;
-    width: 100%;
 }
 
-/* La tarjeta del formulario con borde naranja (Sobrescribe estilos de Registro) */
 .form-card {
     border: 3px solid #F38B2A;
     border-radius: 20px;
     padding: 30px;
     width: 100%;
     background: white;
-    display: flex;
-    flex-direction: column;
     gap: 20px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
@@ -680,13 +661,11 @@ h1:focus {
         font-style: italic;
     }
 
-/* El asterisco rojo para campos requeridos */
 .required::before {
     content: "* ";
     color: red;
 }
 
-/* Estilo de los inputs (efecto 3D sutil/sombra) */
 .styled-input {
     border: none;
     background: #f9f9f9;
@@ -705,7 +684,6 @@ h1:focus {
         background: white;
     }
 
-/* --- BOTONES (Nuevos Estilos Naranja) --- */
 .action-buttons {
     display: flex;
     gap: 20px;
@@ -738,22 +716,17 @@ h1:focus {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-
 /* ========================================================================= */
-/* 6. PANTALLA DE SELECCIÓN DE SERVICIOS (Menú Central) */
+/* 6. SELECCIÓN DE SERVICIOS */
 /* ========================================================================= */
 
 .servicio-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
     min-height: 80vh;
     font-family: 'Lato', sans-serif;
     background-color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
 }
 
 .center-content {
@@ -762,12 +735,11 @@ h1:focus {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    width: 100%;
     max-width: 450px;
+    width: 100%;
 }
 
 .cliente-nombre {
-    font-family: 'Lato', sans-serif;
     font-weight: 700;
     font-size: 2.8rem;
     color: #9E9E9E;
@@ -776,10 +748,9 @@ h1:focus {
 }
 
 .titulo-instruccion {
-    font-family: 'Lato', sans-serif;
     font-weight: 700;
     font-size: 1.4rem;
-    color: #666666;
+    color: #666;
     text-transform: uppercase;
     margin-bottom: 2.5rem;
 }
@@ -792,7 +763,6 @@ h1:focus {
     margin-bottom: 3rem;
 }
 
-/* --- BOTONES DE SERVICIO --- */
 .btn-servicio {
     padding: 1rem 0;
     font-size: 1.6rem;
@@ -801,18 +771,15 @@ h1:focus {
     cursor: pointer;
     transition: all 0.2s ease;
     width: 100%;
-    font-family: 'Lato', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
 }
 
     .btn-servicio:active {
         transform: scale(0.98);
     }
 
-/* Exprés (Relleno Naranja) */
 .btn-express {
     background-color: #F2994A;
     color: white;
@@ -820,13 +787,6 @@ h1:focus {
     box-shadow: 0 4px 15px rgba(242, 153, 74, 0.4);
 }
 
-.icon-suffix {
-    margin-left: 15px;
-    display: flex;
-    align-items: center;
-}
-
-/* Diseño (Borde Naranja) */
 .btn-diseno {
     background-color: white;
     color: #F2994A;
@@ -837,7 +797,6 @@ h1:focus {
         background-color: #FFF5EB;
     }
 
-/* Botón Volver de Servicios/Modal (Outline Naranja - Estilo Prioritario) */
 .btn-volver {
     background: white;
     color: #F2994A;
@@ -855,18 +814,13 @@ h1:focus {
         background-color: #FFF5EB;
     }
 
-
 /* ========================================================================= */
-/* 7. MODAL DE SELECCIÓN DE CATEGORÍAS */
+/* 7. MODAL CATEGORÍAS */
 /* ========================================================================= */
 
-/* Fondo oscuro transparente */
 .modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background-color: rgba(0, 0, 0, 0.75);
     z-index: 2000;
     display: flex;
@@ -875,7 +829,6 @@ h1:focus {
     backdrop-filter: blur(2px);
 }
 
-/* La ventana flotante */
 .modal-window {
     width: 95%;
     max-width: 800px;
@@ -883,12 +836,9 @@ h1:focus {
     border-radius: 25px;
     overflow: hidden;
     box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
     font-family: 'Lato', sans-serif;
 }
 
-/* --- ENCABEZADO NARANJA --- */
 .modal-header {
     background-color: #F2994A;
     padding: 15px 25px;
@@ -900,7 +850,6 @@ h1:focus {
 }
 
 .header-title {
-    font-family: 'Lato', sans-serif;
     font-weight: 700;
     font-size: 1.6rem;
     text-transform: uppercase;
@@ -910,15 +859,11 @@ h1:focus {
     letter-spacing: 1px;
 }
 
-/* Botón X de cerrar */
 .btn-close-x {
     background: none;
     border: none;
     cursor: pointer;
     padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border-radius: 50%;
     transition: background 0.2s;
 }
@@ -927,60 +872,48 @@ h1:focus {
         background-color: rgba(255, 255, 255, 0.2);
     }
 
-/* --- CUERPO BLANCO --- */
 .modal-body {
-    padding: 25px 50px 50px 50px;
-    position: relative;
+    padding: 25px 50px 50px;
     text-align: center;
     min-height: 350px;
     background-color: white;
+    position: relative;
 }
 
 .subtitulo-servicios {
-    font-family: 'Lato', sans-serif;
-    color: #666666;
+    color: #666;
     font-weight: 700;
     font-size: 1.2rem;
     margin-bottom: 30px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    position: relative;
     z-index: 2;
 }
 
-/* Marca de agua (Logo de fondo) */
 .watermark-bg {
     position: absolute;
     top: 55%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1;
     opacity: 0.15;
-    pointer-events: none;
     width: 60%;
+    pointer-events: none;
+    z-index: 1;
 }
 
-    .watermark-bg img {
-        width: 100%;
-        height: auto;
-    }
-
-/* --- GRID DE BOTONES (Estilo Píldora) --- */
 .grid-botones {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px 40px;
-    position: relative;
-    z-index: 2;
     max-width: 700px;
     margin: 0 auto;
+    z-index: 2;
 }
 
 .btn-grid {
     background: white;
     border: 3px solid #F2994A;
     color: #F2994A;
-    font-family: 'Lato', sans-serif;
     font-weight: 700;
     font-size: 1rem;
     padding: 12px 10px;
@@ -991,7 +924,6 @@ h1:focus {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-    /* Efecto Hover */
     .btn-grid:hover {
         background-color: #F2994A;
         color: white;
@@ -999,14 +931,12 @@ h1:focus {
         box-shadow: 0 4px 8px rgba(242, 153, 74, 0.4);
     }
 
-    /* Efecto Click */
     .btn-grid:active {
-        transform: scale(0.98) translateY(0);
+        transform: scale(0.98);
     }
 
-
 /* ========================================================================= */
-/* 8. ESTILOS DEL TICKET FINAL */
+/* 8. TICKET FINAL */
 /* ========================================================================= */
 
 .modal-ticket {
@@ -1029,15 +959,13 @@ h1:focus {
 }
 
 .ticket-info-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
     width: 100%;
+    margin-bottom: 15px;
 }
 
     .ticket-info-group label {
         font-size: 0.85rem;
-        color: #999999;
+        color: #999;
         font-weight: 700;
         margin-bottom: 2px;
         text-transform: uppercase;
@@ -1063,7 +991,6 @@ h1:focus {
     color: black;
 }
 
-/* Botón Naranja Outline con fondo blanco */
 .btn-generar-ticket {
     margin-top: 20px;
     background-color: white;
@@ -1096,21 +1023,17 @@ h1:focus {
     }
 }
 
-
 /* ========================================================================= */
-/* 9. PANTALLA DE COLA DE ESPERA (Employee Queue) */
+/* 9. COLA DE ESPERA (EMPLEADOS) */
 /* ========================================================================= */
 
-/* --- CONTENEDOR PRINCIPAL --- */
 .employee-queue-container {
-    background-color: #f8f9fa; /* Fondo ligero para contraste */
+    background-color: #f8f9fa;
     color: #333;
     font-family: 'Lato', sans-serif;
     padding: 20px;
-    box-sizing: border-box;
 }
 
-/* --- COLA CARD: Centrado en el nuevo contenedor --- */
 .queue-card-wrapper {
     display: flex;
     justify-content: center;
@@ -1121,7 +1044,7 @@ h1:focus {
 }
 
 .queue-card {
-    background-color: white; /* FONDO DE LA TABLA A BLANCO */
+    background-color: white;
     border-radius: 10px;
     width: 90%;
     max-width: 1200px;
@@ -1140,18 +1063,15 @@ h1:focus {
     margin-bottom: 20px;
 }
 
-/* 🚩 LÓGICA DE SCROLLING para la tabla */
 .table-scroll-wrapper {
     max-height: 60vh;
     overflow-y: auto;
     padding-right: 15px;
 }
 
-/* --- TABLA --- */
 .queue-table {
     width: 100%;
     border-collapse: collapse;
-    color: #333;
 }
 
     .queue-table th {
@@ -1160,8 +1080,6 @@ h1:focus {
         border-bottom: 2px solid #F98700;
         text-transform: uppercase;
         padding: 12px 15px;
-        text-align: left;
-        /* CLAVE PARA EL SCROLL: Hace el encabezado fijo */
         position: sticky;
         top: 0;
         background-color: white;
@@ -1170,12 +1088,10 @@ h1:focus {
 
     .queue-table td {
         padding: 12px 15px;
-        text-align: left;
         font-size: 16px;
         border-bottom: 1px solid #eee;
     }
 
-    /* Filas de datos */
     .queue-table tbody tr {
         background-color: white;
         transition: background-color 0.2s;
@@ -1191,7 +1107,6 @@ h1:focus {
     color: #aaa;
 }
 
-/* Botón de Atender (Verde) */
 .btn-attend {
     background-color: #00A300 !important;
     border-color: #00A300 !important;
@@ -1201,13 +1116,10 @@ h1:focus {
     font-weight: 700;
 }
 
-    .btn-attend:hover {
-        background-color: #00CC00 !important;
-        border-color: #00CC00 !important;
-    }
+.btnattend:hover {
+    background-color: #00CC00 !important;
+}
 
-
-/* --- BOTONES DE ACCIÓN (Llamar / Reutilizar) --- */
 .action-buttons-wrapper {
     display: flex;
     justify-content: center;
@@ -1237,7 +1149,6 @@ h1:focus {
         opacity: 0.6;
     }
 
-/* Responsive Queue */
 @media (max-width: 768px) {
     .action-buttons-wrapper {
         flex-direction: column;
@@ -1249,13 +1160,11 @@ h1:focus {
     }
 }
 
-
 /* ========================================================================= */
-/* 10. ESTILOS DE LOGIN DE EMPLEADOS (EmployeeLoginContent.razor) */
+/* 10. LOGIN EMPLEADOS */
 /* ========================================================================= */
 
 .login-panel {
-    flex: 0 0 auto;
     width: 450px;
     display: flex;
     flex-direction: column;
@@ -1263,19 +1172,16 @@ h1:focus {
     z-index: 10;
 }
 
-/* Tarjeta de Login (Ajusta padding y gap de .form-card) */
 .form-card.login-card {
     padding: 40px 30px;
     gap: 30px;
-    border: 3px solid #F38B2A; /* Reasegurar el borde naranja */
+    border: 3px solid #F38B2A;
     border-radius: 20px;
     width: 100%;
     background: white;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    box-sizing: border-box;
 }
 
-/* Sobrescribe el estilo de los inputs para el login (sin fondo, con línea inferior) */
 .login-card .styled-input {
     background: white;
     border: none;
@@ -1291,12 +1197,10 @@ h1:focus {
     transition: all 0.16s;
 }
 
-    /* Mantenemos el efecto de enfoque del CSS de cliente */
     .login-card .styled-input:focus {
         box-shadow: 0 4px 8px rgba(243, 139, 42, 0.3);
     }
 
-/* Ajuste de los botones de acción para Login */
 .login-action-buttons {
     display: flex;
     justify-content: space-around;
@@ -1312,57 +1216,18 @@ h1:focus {
         padding: 15px;
         font-size: 1.1rem;
         font-weight: 700;
-        /* Reasegurar estilos de botón ya definidos */
         border-radius: 10px;
         cursor: pointer;
         text-transform: uppercase;
         transition: transform 0.08s;
-        box-sizing: border-box;
     }
 
-/* Reutilización de estilos de botones (solo si el login-action-buttons no lo define) */
-.btn-outline {
-    background: white;
-    border: 2px solid #F38B2A;
-    color: #F38B2A;
-}
-
-.btn-solid {
-    background: #F38B2A;
-    border: 2px solid #F38B2A;
-    color: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-}
-
-
-/* Form group layout y labels (reutilizados del formulario de cliente) */
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-    .form-group label {
-        font-weight: 700;
-        font-size: 1rem;
-        margin-bottom: 6px;
-        font-style: italic;
-    }
-
-/* Required asterisk */
-.required::before {
-    content: "* ";
-    color: red;
-}
-
-
 /* ========================================================================= */
-/* 11. ESTILOS DE PRE-FACTURA / VENTAS */
+/* 11. PRE-FACTURA / VENTAS */
 /* ========================================================================= */
 
-/* --- CONFIGURACIÓN GENERAL --- */
 .prefactura-container {
     padding: 30px;
-    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     background-color: white;
@@ -1381,7 +1246,6 @@ h1:focus {
     text-transform: uppercase;
 }
 
-/* --- LAYOUT DE COLUMNAS --- */
 .prefactura-grid {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -1389,9 +1253,8 @@ h1:focus {
     align-items: start;
 }
 
-/* --- ESTILOS DE TARJETAS Y TÍTULOS --- */
 .client-details-card, .search-and-details-card {
-    background-color: #f5f5f5; /* Gris claro */
+    background-color: #f5f5f5;
     padding: 20px;
     border-radius: 8px;
     height: fit-content;
@@ -1420,7 +1283,6 @@ h1:focus {
     margin-bottom: 10px;
 }
 
-/* --- DETALLES DE CLIENTE Y RESUMEN (Columna Izquierda) --- */
 .data-group {
     display: flex;
     justify-content: space-between;
@@ -1436,7 +1298,7 @@ h1:focus {
 }
 
 .summary-box {
-    background-color: #d8d8d8; /* Gris medio */
+    background-color: #d8d8d8;
     padding: 15px;
     border-radius: 5px;
     margin-top: 30px;
@@ -1451,7 +1313,7 @@ h1:focus {
 
     .summary-item.total {
         border-top: 3px solid #F98700;
-        background-color: #c0c0c0; /* Gris oscuro para el total */
+        background-color: #c0c0c0;
         margin-top: 15px;
         padding: 10px 0;
         font-size: 1.3rem;
@@ -1461,7 +1323,7 @@ h1:focus {
 
 .btn-finalizar {
     width: 100%;
-    background-color: #00A300; /* Verde */
+    background-color: #00A300;
     color: white;
     border: none;
     padding: 15px;
@@ -1477,8 +1339,6 @@ h1:focus {
         transform: translateY(-2px);
     }
 
-
-/* --- 1. ESTILOS DE LA BÚSQUEDA --- */
 .search-area {
     margin-bottom: 25px;
 }
@@ -1493,7 +1353,6 @@ h1:focus {
     background-color: white;
 }
 
-/* --- 2. RESULTADOS DE BÚSQUEDA (Mini-Tabla) --- */
 .search-results-list {
     flex-grow: 0;
     overflow-y: auto;
@@ -1510,7 +1369,7 @@ h1:focus {
 }
 
     .search-table thead th {
-        background-color: #F98700; /* Header de la mini-tabla Naranja */
+        background-color: #F98700;
         color: white;
         font-weight: 700;
         position: sticky;
@@ -1535,14 +1394,13 @@ h1:focus {
 }
 
 .btn-add-item-small {
-    background-color: #00A300; /* Botón verde para Añadir */
+    background-color: #00A300;
     color: white;
     border: none;
     padding: 6px 10px;
     border-radius: 5px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.2s;
     font-weight: 700;
 }
 
@@ -1550,7 +1408,6 @@ h1:focus {
         background-color: #00CC00;
     }
 
-/* --- 3. TABLA DE ARTÍCULOS DE LA PRE-FACTURA (Detalle Final) --- */
 .prefactura-items-table-wrapper {
     max-height: 380px;
     flex-grow: 1;
@@ -1561,14 +1418,13 @@ h1:focus {
 }
 
 .items-table {
-    position: relative;
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
     .items-table thead th {
-        background-color: #FFAA00; /* Naranja medio para el detalle de pre-factura */
+        background-color: #FFAA00;
         color: white;
         font-weight: 700;
         position: sticky;
@@ -1582,13 +1438,6 @@ h1:focus {
     text-align: center;
     border: 1px solid #ccc;
     border-radius: 3px;
-}
-
-.no-data {
-    text-align: center;
-    font-style: italic;
-    color: #aaa;
-    padding: 15px;
 }
 
 .col-cant {
@@ -1620,14 +1469,13 @@ h1:focus {
         color: #a94442;
     }
 
-/* Responsive */
 @media (max-width: 900px) {
     .prefactura-grid {
         grid-template-columns: 1fr;
     }
 
     .client-details-card {
-        order: 2; /* Mueve los detalles de cliente abajo en móvil */
+        order: 2;
     }
 
     .search-and-details-card {
@@ -1635,12 +1483,10 @@ h1:focus {
     }
 }
 
-
 /* ========================================================================= */
-/* 12. ESTILOS DE LAYOUT DE KIOSCO / DISPLAY PÚBLICO */
+/* 12. KIOSCO / DISPLAY PÚBLICO */
 /* ========================================================================= */
 
-/* Contenedor General: Ocupa toda la pantalla, establece Lato */
 .kiosk-container {
     display: flex;
     flex-direction: column;
@@ -1649,37 +1495,29 @@ h1:focus {
     background-color: white;
     overflow: hidden;
     font-family: 'Lato', sans-serif;
-    position: relative;
     color: #333;
 }
 
-
-/* --- Cabecera: Posicionamiento Arreglado --- */
 .kiosk-header {
-    background-color: #F38B2A; /* Naranja KCR */
+    background-color: #F38B2A;
     height: 80px;
     display: flex;
     align-items: center;
     padding: 0 40px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     z-index: 10;
-    justify-content: space-between; /* Distribuye los 3 bloques */
+    justify-content: space-between;
 }
 
-/* Logo (Izquierda) */
-.header-left {
-    display: flex;
-    align-items: center;
+.header-left, .header-right {
     z-index: 2;
 }
 
-/* Tamaño de la imagen del logo */
 .header-logo-img {
     max-height: 60px;
     width: auto;
 }
 
-/* Título Central ("SISTEMA DE TURNOS") */
 .header-center {
     position: absolute;
     left: 50%;
@@ -1691,33 +1529,24 @@ h1:focus {
     white-space: nowrap;
 }
 
-/* Hora (Derecha) */
 .header-right {
     font-size: 1.2rem;
     font-weight: 400;
     color: white;
-    z-index: 2;
 }
 
-/* --- Área de Contenido --- */
 .kiosk-content {
-    flex: 1; /* Toma todo el espacio vertical restante */
-    position: relative;
-    z-index: 5;
-    /* Centra el componente hijo (TurnoCliente.razor) */
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    z-index: 5;
 }
 
-/* --- Decoraciones de Fondo --- */
 .decorations {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
     z-index: 1;
 }
@@ -1726,7 +1555,6 @@ h1:focus {
     position: absolute;
 }
 
-/* Posicionamiento específico (Formas) */
 .top-left {
     width: 100px;
     height: 100px;
@@ -1757,27 +1585,23 @@ h1:focus {
     right: 30px;
 }
 
-
 /* ========================================================================= */
-/* 13. ESTILOS DE LAYOUT DE EMPLEADOS (EmployeeLayout.razor) - FINAL */
+/* 13. LAYOUT EMPLEADOS */
 /* ========================================================================= */
 
 .employee-login-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    width: 100%;
-    margin: 0;
     background-color: white;
     font-family: 'Lato', sans-serif;
 }
 
-/* --- ENCABEZADO (Header) --- */
 .header-banner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #F38B2A; /* Naranja principal */
+    background-color: #F38B2A;
     color: white;
     padding: 15px 40px;
     height: 90px;
@@ -1804,15 +1628,13 @@ h1:focus {
     font-size: 1.5rem;
 }
 
-/* --- CUERPO DE CONTENIDO Y DECORACIONES --- */
 .login-grid {
     flex-grow: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-top: 90px; /* Espacio para el header fijo */
+    padding-top: 90px;
     position: relative;
-    width: 100%;
 }
 
 .login-content-wrapper {
@@ -1824,60 +1646,19 @@ h1:focus {
     z-index: 10;
 }
 
-/* --- DECORACIONES (VECTORES) --- */
-/* NOTA: Sobrescribe el estilo base de .vector-decor */
-.vector-decor {
-    position: absolute;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0.8;
-}
+/* ========================================================================= */
+/* 14. DISPLAY PÚBLICO COLA */
+/* ========================================================================= */
 
-/* Posicionamiento de las Cruces/Uniones */
-.login-plus-tl {
-    top: 20%;
-    left: 10%;
-    width: 120px;
-}
-
-.login-plus-tr {
-    top: 20%;
-    right: 10%;
-    width: 100px;
-}
-
-.login-plus-bl {
-    bottom: 10%;
-    left: 10%;
-    width: 150px;
-}
-
-.login-plus-br {
-    bottom: 10%;
-    right: 10%;
-    width: 100px;
-}
-
-/*DISPLAY*/
-
-
-/* ========================================================= */
-/* --- 1. VARIABLES GLOBALES --- */
-/* ========================================================= */
 :root {
-    --color-primary-orange: #ff7f00; /* Naranja Brillante */
-    --color-secondary-dark: #4a4a4a; /* Gris Oscuro */
-    --color-background-light: #fefefe; /* Fondo general */
-    --color-card-bg-white: #ffffff; /* Fondo de tarjetas */
-    --color-text-light: #f8f9fa; /* Texto claro */
-    --color-header-bg: #e6e6e6; /* Gris claro para encabezados */
-    --color-queue-hover: #fff5e6; /* Naranja muy pálido para hover */
-    --font-family: 'Arial', sans-serif;
+    --color-primary-orange: #ff7f00;
+    --color-secondary-dark: #4a4a4a;
+    --color-background-light: #fefefe;
+    --color-card-bg-white: #ffffff;
+    --color-header-bg: #e6e6e6;
+    --color-queue-hover: #fff5e6;
 }
 
-/* ========================================================= */
-/* --- 2. ESTILOS BASE Y TÍTULO --- */
-/* ========================================================= */
 .public-queue-display {
     display: flex;
     flex-direction: column;
@@ -1885,7 +1666,7 @@ h1:focus {
     padding: 30px;
     background-color: var(--color-background-light);
     min-height: 100vh;
-    font-family: var(--font-family);
+    font-family: Arial, sans-serif;
 }
 
 .display-title {
@@ -1897,9 +1678,6 @@ h1:focus {
     padding-bottom: 10px;
 }
 
-/* ========================================================= */
-/* --- 3. TARJETA DE TURNO ACTUAL (En Atención / Espera) --- */
-/* ========================================================= */
 .current-turn-container {
     width: 100%;
     max-width: 900px;
@@ -1916,10 +1694,8 @@ h1:focus {
     flex-direction: column;
     padding: 50px 30px;
     min-height: 250px;
-    width: 100%;
 }
 
-/* ESTILO: Turro Activo */
 .current-attention {
     justify-content: center;
     align-items: center;
@@ -1932,16 +1708,15 @@ h1:focus {
         text-shadow: 4px 4px 6px #ffff;
     }
 
-/* ESTILO: Mensaje de Espera (Alineado a la derecha) */
 .waiting-message {
     padding: 70px 30px;
     justify-content: space-between;
-    align-items: flex-end; /* Alinea los elementos a la derecha */
+    align-items: flex-end;
     text-align: right;
 }
 
     .waiting-message .label {
-        align-self: flex-start; /* Mueve ¡BIENVENIDOS! a la izquierda */
+        align-self: flex-start;
         text-align: left;
     }
 
@@ -1949,20 +1724,15 @@ h1:focus {
         font-size: 3em;
         font-weight: 500;
         margin-top: 50px;
-        align-self: flex-end;
-        text-align: right;
         text-shadow: none;
     }
 
-
-/* Estilos Comunes (Label y Service Name) */
 .current-turn-card .label {
     font-size: 1.8em;
     font-weight: 300;
     margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    width: 100%;
 }
 
 .current-turn-card .service-name {
@@ -1970,20 +1740,12 @@ h1:focus {
     font-weight: 500;
     opacity: 0.9;
     padding-top: 10px;
-    width: 100%;
 }
 
 .current-turn-card .turn-number {
-    display: block;
     line-height: 1;
     margin: 15px 0;
-    width: 100%;
 }
-
-
-/* ========================================================= */
-/* --- 4. LISTA DE ESPERA (COLA DE TARJETAS) --- */
-/* ========================================================= */
 
 .waiting-queue-list {
     width: 100%;
@@ -2000,28 +1762,21 @@ h1:focus {
     padding: 15px 20px;
     color: var(--color-secondary-dark);
     background-color: var(--color-header-bg);
-    margin-top: 0;
     font-weight: 600;
     border-bottom: 2px solid var(--color-primary-orange);
-}
-
-.table-scroll-wrapper {
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 .public-queue-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px; /* Espacio entre filas */
+    border-spacing: 0 10px;
     padding: 0 10px;
 }
 
-    /* Encabezado */
     .public-queue-table thead th {
         background-color: var(--color-card-bg-white);
         color: var(--color-secondary-dark);
-        padding: 15px 15px 10px 15px;
+        padding: 15px;
         text-align: left;
         position: sticky;
         top: 0;
@@ -2031,36 +1786,26 @@ h1:focus {
         text-transform: uppercase;
     }
 
-    /* Fila (Tarjeta) */
     .public-queue-table tbody tr {
-        transition: all 0.2s ease-in-out;
         background-color: var(--color-card-bg-white);
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        display: table-row;
+        transition: all 0.2s ease-in-out;
     }
-        /* Eliminar fondo alternado redundante */
-        .public-queue-table tbody tr:nth-child(even) {
-            background-color: var(--color-card-bg-white);
-        }
 
-        /* Efecto Hover */
         .public-queue-table tbody tr:hover {
             background-color: var(--color-queue-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-    /* Celdas */
     .public-queue-table tbody td {
         padding: 15px;
-        border-bottom: none;
         color: var(--color-secondary-dark);
         font-size: 1.1em;
         vertical-align: middle;
     }
 
-/* Estilos Específicos de Columna */
 .queue-num {
     font-weight: 800;
     color: var(--color-primary-orange);
@@ -2077,7 +1822,6 @@ h1:focus {
     color: var(--color-secondary-dark);
 }
 
-/* Anchos de columna */
 .public-queue-table .col-num {
     width: 15%;
 }
@@ -2090,7 +1834,6 @@ h1:focus {
     width: 40%;
 }
 
-/* Mensaje de cola vacía */
 .no-queue {
     text-align: center;
     color: var(--color-secondary-dark);
