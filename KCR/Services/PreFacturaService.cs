@@ -92,7 +92,13 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
     public async Task<List<PreFacturas>> Listar(Expression<Func<PreFacturas, bool>> criterio)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.preFacturas.Include(p => p.PreFacturaDetalles).Where(criterio).AsNoTracking().ToListAsync();
+        return await contexto.preFacturas
+            .Include(p => p.PreFacturaDetalles)
+            .Include(p => p.Clientes) 
+            .Include(p => p.Empleado)  
+            .Where(criterio)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<List<Servicios>> ListarServicios()
@@ -121,7 +127,6 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
 
         var lowerQuery = query.ToLower();
 
-        // Proyectamos Servicios a PreFacturaDetalles
         var servicios = await contexto.servicios
             .Where(s => s.Nombre.ToLower().Contains(lowerQuery) ||
                 (s.Tipo != null && s.Tipo.ToLower().Contains(lowerQuery)))
@@ -131,12 +136,10 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
                 IdMaterial = null,
                 PrecioUnitario = (decimal)s.Precio,
                 Cantidad = 1,
-                // Cargamos el objeto dummy solo para mostrar el nombre en el UI
                 Servicios = new Servicios { Nombre = s.Nombre, Tipo = s.Tipo ?? "Servicio" }
             })
             .ToListAsync();
 
-        // Proyectamos Materiales a PreFacturaDetalles
         var materiales = await contexto.materiales
             .Where(m => m.Existencia > 0)
             .Where(m => m.Nombre.ToLower().Contains(lowerQuery))
@@ -146,12 +149,10 @@ public class PreFacturaService(IDbContextFactory<ApplicationDbContext> DbFactory
                 IdServicio = null,
                 PrecioUnitario = (decimal)m.PrecioUnitario,
                 Cantidad = 1,
-                // Cargamos el objeto dummy solo para mostrar el nombre en el UI
                 Materiales = new Materiales { Nombre = m.Nombre }
             })
             .ToListAsync();
 
-        // Unimos y ordenamos (usando el nombre que cargamos en las propiedades de navegación)
         return servicios.Concat(materiales)
             .OrderBy(i => i.Servicios?.Nombre ?? i.Materiales?.Nombre)
             .ToList();

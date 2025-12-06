@@ -13,6 +13,9 @@ public class Turnos
 
     public DateTime Fecha { get; set; }
 
+    [Required, MaxLength(20)]
+    public string Estado { get; set; } = "En Espera";
+
     [ForeignKey("Servicios")]
     public int? IdServicio { get; set; }
     public Servicios? Servicios { get; set; }

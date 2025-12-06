@@ -8,7 +8,7 @@
 
 @layout MainLayout
 @inject NavigationManager navigationManager
-@inject EmpleadoService empleadoService 
+@inject EmpleadoService empleadoService
 @rendermode InteractiveServer
 
 <div class="lista-empleados-page">
@@ -94,13 +94,13 @@
 </div>
 
 @code {
-    private string FiltroSeleccionado { get; set; } = "";
-    private string TerminoBusqueda { get; set; } = "";
-    private List<Empleados> Empleados = new(); 
-    private bool isLoading = true; 
+    private string ValorFiltro { get; set; } = ""; 
+    private string Filtro { get; set; } = ""; 
+
+    private List<Empleados> Empleados = new();
+    private bool isLoading = true;
 
     private List<Empleados> EmpleadosFiltrados => AplicarFiltroYBusqueda();
-
 
 
     protected override async Task OnInitializedAsync()
@@ -113,13 +113,11 @@
         isLoading = true;
         try
         {
-            // Llama al servicio real para obtener todos los empleados
             Empleados = await empleadoService.ListarTodosAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error al cargar empleados: {ex.Message}");
-            // En un app real, podrías registrar este error o notificar al usuario.
         }
         finally
         {
@@ -127,37 +125,54 @@
         }
     }
 
-    // --- Lógica de Búsqueda y Filtro ---
 
     private List<Empleados> AplicarFiltroYBusqueda()
     {
         var lista = Empleados.AsEnumerable();
-        var termino = TerminoBusqueda.ToLower();
+        var textoBusqueda = ValorFiltro.Trim().ToLower();
 
-        // Aplicar Búsqueda
-        if (!string.IsNullOrWhiteSpace(termino))
+        if (!string.IsNullOrWhiteSpace(textoBusqueda))
         {
-            lista = lista.Where(e => (e.Nombre != null && e.Nombre.ToLower().Contains(termino)) ||
-                                     e.IdEmpleado.ToString().Contains(termino) ||
-                                     (e.Cargo != null && e.Cargo.ToLower().Contains(termino)));
+            if (Filtro == "Nombre")
+            {
+                lista = lista.Where(e => e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "Cargo")
+            {
+                lista = lista.Where(e => e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda));
+            }
+            else if (Filtro == "IdEmpleado")
+            {
+                // Manejo seguro para ID (entero)
+                if (int.TryParse(ValorFiltro.Trim(), out int idBusqueda))
+                {
+                    lista = lista.Where(e => e.IdEmpleado == idBusqueda);
+                }
+                else
+                {
+                    return new List<Empleados>();
+                }
+            }
+            else 
+            {
+                lista = lista.Where(e => (e.Nombre != null && e.Nombre.ToLower().Contains(textoBusqueda)) ||
+                                         (e.Cargo != null && e.Cargo.ToLower().Contains(textoBusqueda)) ||
+                                          e.IdEmpleado.ToString().Contains(textoBusqueda));
+            }
         }
 
-        // Aplicar Filtro (si es necesario)
-        if (FiltroSeleccionado == "Cargo")
+
+        if (Filtro == "Cargo")
         {
             lista = lista.OrderBy(e => e.Cargo);
         }
-        else if (FiltroSeleccionado == "ID")
+        else if (Filtro == "IdEmpleado")
         {
             lista = lista.OrderBy(e => e.IdEmpleado);
         }
 
-        return lista.ToList();
-    }
 
-    public async Task Eliminar(int id)
-    {
-        StateHasChanged();
+        return lista.ToList();
     }
 
 
@@ -166,15 +181,14 @@
         navigationManager.NavigateTo("/registro-empleado");
     }
 
-    private void Modificar(int id) 
+    private void Modificar(int id)
     {
         navigationManager.NavigateTo($"/modificar-empleado/{id}");
     }
 
-    private async Task Eliminar(int id) 
+    private async Task Eliminar(int id)
     {
         Console.WriteLine($"Intentando eliminar empleado con ID: {id}");
-
 
         if (await empleadoService.Eliminar(id))
         {
@@ -186,6 +200,9 @@
         }
     }
 
+    private void Buscar()
+    {
+    }
 
 
     private void Volver()
