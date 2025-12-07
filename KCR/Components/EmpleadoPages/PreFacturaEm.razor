@@ -3,6 +3,8 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "EmpleadoExpress, EmpleadoDE, Administrador")]
 
+@inject AuthenticationStateProvider AuthStateProvider
+@inject EmpleadoService empleadoService
 @inject NavigationManager navigationManager
 @inject TurnoService turnoService
 @inject PreFacturaService preFacturaService
@@ -222,42 +224,48 @@
     {
         if (PreFacturaItems.Count == 0 || clienteTurno == null) return;
 
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        string nombreUsuario = user.Identity?.Name ?? "";
+        Console.WriteLine($"Usuario detectado: {nombreUsuario}");
+
+        var lista = await empleadoService.Listar(e => e.Nombre == nombreUsuario);
+        var empleadoDB = lista.FirstOrDefault();
+
         var nuevaPreFactura = new PreFacturas
         {
+            IdEmpleado = 1,
             IdCliente = clienteTurno.Clientes.IdCliente,
             NombreCliente = clienteTurno.Clientes.Nombres,
             Fecha = DateTime.Now,
-            Estado = "Pendiente", 
+            Estado = "Pendiente",
             Total = this.Total,
-            IdTurno = this.TurnoId,
+            IdTurno = clienteTurno.IdTurno,
             PreFacturaDetalles = new List<PreFacturaDetalles>()
         };
 
+        // ... Agregar detalles ...
         foreach (var item in PreFacturaItems)
         {
-            var detalleLimpio = new PreFacturaDetalles
+            // ... tu lógica de detalles ...
+            nuevaPreFactura.PreFacturaDetalles.Add(new PreFacturaDetalles
             {
                 IdServicio = item.IdServicio,
                 IdMaterial = item.IdMaterial,
                 Cantidad = item.Cantidad,
-                PrecioUnitario = item.PrecioUnitario,
-                Servicios = null,
-                Materiales = null
-            };
-
-            nuevaPreFactura.PreFacturaDetalles.Add(detalleLimpio);
+                PrecioUnitario = item.PrecioUnitario
+            });
         }
 
-        var resultadoGuardado = await preFacturaService.Guardar(nuevaPreFactura);
+        Console.WriteLine($"Guardando factura con Empleado ID: {nuevaPreFactura.IdEmpleado}");
 
-        if (resultadoGuardado)
+        var guardado = await preFacturaService.Guardar(nuevaPreFactura);
+
+        if (guardado)
         {
             await turnoService.CambiarEstadoAsync(TurnoId, "Pre-Facturado");
             navigationManager.NavigateTo($"/empleado/{AreaActual}");
-        }
-        else
-        {
-            Console.WriteLine("Error al guardar la Pre-Factura.");
         }
     }
 }

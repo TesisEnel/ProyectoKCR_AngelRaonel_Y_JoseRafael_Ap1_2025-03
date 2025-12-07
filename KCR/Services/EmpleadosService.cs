@@ -65,7 +65,7 @@ public class EmpleadoService(IDbContextFactory<ApplicationDbContext> DbFactory)
         contexto.empleados.Update(empleado);
         return await contexto.SaveChangesAsync() > 0;
     }
-    public async Task<Empleados> Buscar(int idempleado)
+    public async Task<Empleados?> Buscar(int? idempleado)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.empleados.FirstOrDefaultAsync(e => e.IdEmpleado == idempleado);

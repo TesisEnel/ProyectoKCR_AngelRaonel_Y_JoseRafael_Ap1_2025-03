@@ -36,6 +36,11 @@
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Historial de Clientes
                     </NavLink>
                 </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                    </NavLink>
+                </div>
             </Authorized>
             </AuthorizeView>
 
@@ -43,7 +48,7 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="empleado/SERVICIO EXPRESS">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion Diseño
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion Express
                     </NavLink>
                 </div>
             </Authorized>
@@ -53,7 +58,7 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="empleado/DISEÑO Y EDICIÓN">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion Express
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Atencion Diseño
                     </NavLink>
                 </div>
             </Authorized>
@@ -62,11 +67,6 @@
 
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />

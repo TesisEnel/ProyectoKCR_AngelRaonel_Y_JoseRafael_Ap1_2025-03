@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KCR.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251206051504_MejorasTurnos")]
-    partial class MejorasTurnos
+    [Migration("20251207025700_Inicial")]
+    partial class Inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -265,6 +265,9 @@ namespace KCR.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPreFactura"));
 
+                    b.Property<int?>("EmpleadoIdEmpleado")
+                        .HasColumnType("int");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -278,14 +281,22 @@ namespace KCR.Migrations
                     b.Property<int>("IdEmpleado")
                         .HasColumnType("int");
 
+                    b.Property<int?>("IdTurno")
+                        .HasColumnType("int");
+
                     b.Property<string>("NombreCliente")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.HasKey("IdPreFactura");
+
+                    b.HasIndex("EmpleadoIdEmpleado");
 
                     b.HasIndex("IdCliente");
 
-                    b.HasIndex("IdEmpleado");
+                    b.HasIndex("IdTurno");
 
                     b.ToTable("preFacturas");
                 });
@@ -414,6 +425,18 @@ namespace KCR.Migrations
                             IdServicio = 17,
                             Nombre = "DISEÑO",
                             Precio = 500.0
+                        },
+                        new
+                        {
+                            IdServicio = 18,
+                            Nombre = "SERVICIO EXPRESS",
+                            Precio = 0.0
+                        },
+                        new
+                        {
+                            IdServicio = 19,
+                            Nombre = "DISEÑO Y EDICIÓN",
+                            Precio = 0.0
                         });
                 });
 
@@ -611,19 +634,23 @@ namespace KCR.Migrations
 
             modelBuilder.Entity("KCR.Models.PreFacturas", b =>
                 {
+                    b.HasOne("KCR.Models.Empleados", "Empleado")
+                        .WithMany("PreFacturas")
+                        .HasForeignKey("EmpleadoIdEmpleado");
+
                     b.HasOne("KCR.Models.Clientes", "Clientes")
                         .WithMany("PreFacturas")
                         .HasForeignKey("IdCliente");
 
-                    b.HasOne("KCR.Models.Empleados", "Empleados")
-                        .WithMany("PreFacturas")
-                        .HasForeignKey("IdEmpleado")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("KCR.Models.Turnos", "Turnos")
+                        .WithMany()
+                        .HasForeignKey("IdTurno");
 
                     b.Navigation("Clientes");
 
-                    b.Navigation("Empleados");
+                    b.Navigation("Empleado");
+
+                    b.Navigation("Turnos");
                 });
 
             modelBuilder.Entity("KCR.Models.Turnos", b =>

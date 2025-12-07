@@ -9,14 +9,13 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using KCR.Data
-@using KCR.Services
-@using System.Linq @* <-- ¡La más probable para su error actual! *@
+
 
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 @inject ILogger<RegistroEmpleados> Logger
-
-
+@* --- NUEVO: Inyectamos el servicio para guardar en la tabla Empleados --- *@
+@inject EmpleadoService empleadoService
 
 <div class="registro-container">
 
@@ -30,12 +29,12 @@
             <ValidationSummary class="text-danger" role="alert" />
 
             <div class="card-body">
-                <p class="@(string.IsNullOrEmpty(statusMessage) || statusMessage.StartsWith("Éxito") ? "text-success" : "text-danger")" 
+                <p class="@(string.IsNullOrEmpty(statusMessage) || statusMessage.StartsWith("Éxito") ? "text-success" : "text-danger")"
                    role="alert">@statusMessage</p>
 
                 <div class="form-row">
                     <label>IdEmpleado</label>
-                    <input type="text" class="input-corto" readonly value="@(EmpleadoId?.ToString() ?? "Nuevo")" />
+                    <input type="text" class="input-corto" readonly value="Auto" />
                 </div>
 
                 <div class="form-row">
@@ -51,17 +50,17 @@
                 </div>
 
                 <div class="form-row">
-                    <label>Cargo</label>
-                    <InputSelect type="text" @bind-Value="Input.Cargo">
+                    <label>Cargo / Rol</label>
+                    <InputSelect @bind-Value="Input.Cargo" class="form-control">
+                        <option value="">-- Seleccione Rol --</option>
                         <option value="EmpleadoExpress">Empleado Express</option>
-                        <option value="EmpleadoDE">Empleado Diseño y edicion</option>
+                        <option value="EmpleadoDE">Empleado Diseño y Edición</option>
                     </InputSelect>
                     <ValidationMessage For="() => Input.Cargo" class="text-danger" />
                 </div>
 
                 <div class="form-row">
                     <label>Usuario (Email)</label>
-                    @* Usamos Input.Email para la validación de email/username *@
                     <InputText type="email" @bind-Value="Input.Email" />
                     <ValidationMessage For="() => Input.Email" class="text-danger" />
                 </div>
@@ -85,9 +84,7 @@
 
 @code {
     private string? statusMessage;
-    [SupplyParameterFromQuery(Name = "id")]
-    public int? EmpleadoId { get; set; }
-    // Usamos un InputModel para la validación y binding
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
@@ -99,47 +96,66 @@
     private async Task GuardarEmpleado()
     {
         statusMessage = null;
-        
-        // 1. Crear y poblar el objeto ApplicationUser con todos los datos
+
+        // 1. Crear el objeto ApplicationUser (Identity)
         var user = new ApplicationUser
         {
-            UserName = Input.Email, 
+            UserName = Input.Email,
             Email = Input.Email,
             EmailConfirmed = true,
-            
-            // Asignación de las propiedades extendidas:
-            Nombre = Input.Nombre, 
+            Nombre = Input.Nombre,
             Cedula = Input.Cedula,
-            Cargo = Input.Cargo 
+            Cargo = Input.Cargo
         };
 
-        // 2. Intentar crear el usuario en la base de datos
+        // 2. Intentar crear el usuario en Identity (Sistema de Login)
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (result.Succeeded)
         {
-            // 3. Asignar el rol de 'Empleado' (el que definiste en IdentitySeeder)
-            var roleResult = await UserManager.AddToRoleAsync(user, IdentitySeeder.EmployeeRole);
+            // 3. Asignar el Rol seleccionado en el formulario
+            // Usamos Input.Cargo directamente porque los valores del select ("EmpleadoExpress", "EmpleadoDE")
+            // coinciden con los nombres de tus roles.
+            var roleResult = await UserManager.AddToRoleAsync(user, Input.Cargo);
 
             if (roleResult.Succeeded)
             {
-                Logger.LogInformation("Usuario y rol de empleado registrados correctamente.");
-                statusMessage = $"Éxito: Empleado {Input.Email} registrado y rol '{IdentitySeeder.EmployeeRole}' asignado.";
-                
-                // Limpiar el formulario
-                Input = new InputModel();
+                // --- NUEVO: Sincronizar con la tabla de negocio 'Empleados' ---
+                // Esto es vital para que no falle la facturación (Foreign Key error)
+                var nuevoEmpleadoBD = new Empleados
+                {
+                    Nombre = Input.Nombre,
+                    Usuario = Input.Email, // Este campo vincula ambas tablas
+                    Cedula = Input.Cedula,
+                    Cargo = Input.Cargo,
+                    Clave = "******" // Ponemos un placeholder o Input.Password si prefieres
+                };
+
+                var guardadoBD = await empleadoService.Insertar(nuevoEmpleadoBD);
+
+                if (guardadoBD)
+                {
+                    Logger.LogInformation("Usuario registrado en Identity y Base de Datos local.");
+                    statusMessage = $"Éxito: Empleado registrado correctamente con rol '{Input.Cargo}'.";
+                    Input = new InputModel(); // Limpiar formulario
+                }
+                else
+                {
+                    // Si falla guardar en la tabla Empleados, podríamos considerar borrar el usuario de Identity
+                    // para mantener la consistencia, o solo avisar.
+                    statusMessage = "Advertencia: El usuario se creó el login, pero falló al guardar en la tabla de empleados.";
+                }
+                // -------------------------------------------------------------
             }
             else
             {
-                // Revertir: Eliminar el usuario si la asignación de rol falla.
                 await UserManager.DeleteAsync(user);
-                statusMessage = $"Error al asignar el rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                statusMessage = $"Error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
             }
         }
         else
         {
-            // Mostrar errores de Identity (ej. "DuplicateUserName")
-            statusMessage = $"Error al crear el usuario: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            statusMessage = $"Error al crear usuario: {string.Join(", ", result.Errors.Select(e => e.Description))}";
         }
     }
 
@@ -148,34 +164,23 @@
         Navigation.NavigateTo("/pantalla-principal-admin");
     }
 
-    // -------------------------------------------------------------------------------------------------
-    // Modelo para la Entrada y Validación
-    // -------------------------------------------------------------------------------------------------
     public sealed class InputModel
     {
-        // NOTA: Usamos Email y Password para los InputText, ya que tienen DataAnnotations
-        
-        // Campos Identity
         [Required(ErrorMessage = "El correo es requerido.")]
-        [EmailAddress(ErrorMessage = "Formato de correo inválido.")]
-        [Display(Name = "Usuario/Email")]
+        [EmailAddress(ErrorMessage = "Formato inválido.")]
         public string Email { get; set; } = "";
-        
+
         [Required(ErrorMessage = "La clave es requerida.")]
-        [StringLength(100, ErrorMessage = "La clave debe tener al menos {2} caracteres.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Clave")]
+        [StringLength(100, ErrorMessage = "Mínimo {2} caracteres.", MinimumLength = 6)]
         public string Password { get; set; } = "";
 
-        // Campos específicos del Empleado
-        // Utilizamos tus DataAnnotations para la validación:
-        [Required(ErrorMessage = "Todos los campos son obligatorios")]
+        [Required(ErrorMessage = "El nombre es requerido")]
         public string Nombre { get; set; } = "";
-        
-        [Required(ErrorMessage = "Todos los campos son obligatorios")]
+
+        [Required(ErrorMessage = "La cédula es requerida")]
         public string Cedula { get; set; } = "";
-        
-        [Required(ErrorMessage = "Todos los campos son obligatorios")]
+
+        [Required(ErrorMessage = "Debe seleccionar un cargo")]
         public string Cargo { get; set; } = "";
     }
 }

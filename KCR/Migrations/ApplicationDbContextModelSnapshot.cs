@@ -262,7 +262,7 @@ namespace KCR.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPreFactura"));
 
-                    b.Property<int>("EmpleadoIdEmpleado")
+                    b.Property<int?>("EmpleadoIdEmpleado")
                         .HasColumnType("int");
 
                     b.Property<string>("Estado")
@@ -278,7 +278,7 @@ namespace KCR.Migrations
                     b.Property<int>("IdEmpleado")
                         .HasColumnType("int");
 
-                    b.Property<int>("IdTurno")
+                    b.Property<int?>("IdTurno")
                         .HasColumnType("int");
 
                     b.Property<string>("NombreCliente")
@@ -287,16 +287,13 @@ namespace KCR.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int>("TurnoIdTurno")
-                        .HasColumnType("int");
-
                     b.HasKey("IdPreFactura");
 
                     b.HasIndex("EmpleadoIdEmpleado");
 
                     b.HasIndex("IdCliente");
 
-                    b.HasIndex("TurnoIdTurno");
+                    b.HasIndex("IdTurno");
 
                     b.ToTable("preFacturas");
                 });
@@ -636,25 +633,21 @@ namespace KCR.Migrations
                 {
                     b.HasOne("KCR.Models.Empleados", "Empleado")
                         .WithMany("PreFacturas")
-                        .HasForeignKey("EmpleadoIdEmpleado")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EmpleadoIdEmpleado");
 
                     b.HasOne("KCR.Models.Clientes", "Clientes")
                         .WithMany("PreFacturas")
                         .HasForeignKey("IdCliente");
 
-                    b.HasOne("KCR.Models.Turnos", "Turno")
+                    b.HasOne("KCR.Models.Turnos", "Turnos")
                         .WithMany()
-                        .HasForeignKey("TurnoIdTurno")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("IdTurno");
 
                     b.Navigation("Clientes");
 
                     b.Navigation("Empleado");
 
-                    b.Navigation("Turno");
+                    b.Navigation("Turnos");
                 });
 
             modelBuilder.Entity("KCR.Models.Turnos", b =>
