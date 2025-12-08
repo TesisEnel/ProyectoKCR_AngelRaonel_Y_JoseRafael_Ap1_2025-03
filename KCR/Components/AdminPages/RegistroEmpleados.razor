@@ -1,8 +1,5 @@
-﻿@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Administrador")]
-
+﻿@attribute [Authorize(Roles = "Administrador")]
 @page "/registro-empleado"
-
 @layout MainLayout
 @rendermode InteractiveServer
 @inject ToastService toastService
@@ -12,7 +9,6 @@
 @inject EmpleadoService empleadoService
 
 <div class="registro-container">
-
     <div class="form-card">
         <div class="card-header">
             <h3>Registro de Empleado</h3>
@@ -23,8 +19,7 @@
             <ValidationSummary class="text-danger" role="alert" />
 
             <div class="card-body">
-                <p class="@(string.IsNullOrEmpty(statusMessage) || statusMessage.StartsWith("Éxito") ? "text-success" : "text-danger")"
-                   role="alert">@statusMessage</p>
+                <p class="@(string.IsNullOrEmpty(statusMessage) || statusMessage.StartsWith("Éxito") ? "text-success" : "text-danger")" role="alert">@statusMessage</p>
 
                 <div class="form-row">
                     <label>IdEmpleado</label>
@@ -72,7 +67,6 @@
             </div>
         </EditForm>
     </div>
-
     <img src="/Img-Vector/Union.svg" class="vector-corner" />
 </div>
 
@@ -90,6 +84,21 @@
     private async Task GuardarEmpleado()
     {
         statusMessage = null;
+
+        if (!EsCedulaValida(Input.Cedula))
+        {
+            statusMessage = "Error: La cédula ingresada no es válida (Verifique los dígitos).";
+            toastService.ShowError("Cédula inválida");
+            return;
+        }
+
+        var existeEnBD = await empleadoService.Listar(e => e.Cedula == Input.Cedula);
+        if (existeEnBD.Any())
+        {
+            statusMessage = "Error: Ya existe un empleado registrado con esta cédula.";
+            toastService.ShowError("La cédula ya existe en el sistema");
+            return;
+        }
 
         var user = new ApplicationUser
         {
@@ -124,7 +133,7 @@
                 {
                     Logger.LogInformation("Usuario registrado en Identity y Base de Datos local.");
                     statusMessage = $"Éxito: Empleado registrado correctamente con rol '{Input.Cargo}'.";
-                    Input = new InputModel(); 
+                    Input = new InputModel();
                     toastService.ShowSuccess("El empleado se guardo correctamente");
                     await Task.Delay(4000);
                     navigationManager.NavigateTo("/lista-empleados");
@@ -142,6 +151,32 @@
             toastService.ShowError("Error al crear usuario");
             await Task.Delay(4000);
         }
+    }
+
+    private bool EsCedulaValida(string pCedula)
+    {
+        if (string.IsNullOrWhiteSpace(pCedula)) return false;
+
+        string vcCedula = pCedula.Replace("-", "").Replace(" ", "");
+
+        if (vcCedula.Length != 11) return false;
+
+        if (!long.TryParse(vcCedula, out _)) return false;
+
+        int vnTotal = 0;
+        int[] digitoMult = new int[11] { 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1 };
+
+        for (int vDig = 1; vDig <= 11; vDig++)
+        {
+            int vCalculo = int.Parse(vcCedula.Substring(vDig - 1, 1)) * digitoMult[vDig - 1];
+
+            if (vCalculo < 10)
+                vnTotal += vCalculo;
+            else
+                vnTotal += int.Parse(vCalculo.ToString().Substring(0, 1)) + int.Parse(vCalculo.ToString().Substring(1, 1));
+        }
+
+        return vnTotal % 10 == 0;
     }
 
     private void IrAtras()

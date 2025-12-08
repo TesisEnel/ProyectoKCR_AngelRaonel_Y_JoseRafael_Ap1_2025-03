@@ -57,24 +57,21 @@
 @code {
     [Parameter]
     [SupplyParameterFromQuery]
-    public int editingClienteId { get; set; } = 0; // ID del cliente si existe o se acaba de guardar
+    public int editingClienteId { get; set; } = 0;
 
     [Parameter]
     [SupplyParameterFromQuery]
     public bool isEditMode { get; set; } = false;
 
-    // Campos del formulario
     private string cedula = string.Empty;
     private string nombre = string.Empty;
     private string telefono = string.Empty;
     private string correo = string.Empty;
 
-    // Estados de la UI
-    private bool IsSearching => isSaving; // Reutilizar el estado para deshabilitar botones
+    private bool IsSearching => isSaving;
     private bool isSaving = false;
     private string? searchMessage = null;
 
-    // --- Carrusel (No se toca, solo para contexto) ---
     private readonly string[] images = new[] {
         "/Img-Vector/Carrusel/carr1.png",
         "/Img-Vector/Carrusel/carr2.png",
@@ -89,7 +86,7 @@
 
     protected override void OnInitialized()
     {
-        _timer = new Timer(ChangeImage, null, 0, 5000); // Cambia cada 5 segundos
+        _timer = new Timer(ChangeImage, null, 0, 5000);
     }
 
     private void ChangeImage(object? state)
@@ -99,12 +96,17 @@
         InvokeAsync(StateHasChanged);
     }
 
-    // --- 1. LÓGICA DE BÚSQUEDA ---
     private async Task BuscarCedulaAsync()
     {
         if (string.IsNullOrWhiteSpace(cedula))
         {
             searchMessage = "Por favor, ingrese un número de cédula para buscar.";
+            return;
+        }
+
+        if (!EsCedulaValida(cedula))
+        {
+            searchMessage = "La cédula ingresada no es válida.";
             return;
         }
 
@@ -117,7 +119,6 @@
 
             if (clienteExistente is not null)
             {
-                // Cliente encontrado: precargar datos
                 editingClienteId = clienteExistente.IdCliente;
                 nombre = clienteExistente.Nombres;
                 telefono = clienteExistente.Telefono ?? string.Empty;
@@ -127,7 +128,6 @@
             }
             else
             {
-                // Cliente no encontrado: formulario en blanco (solo cédula prellenada)
                 editingClienteId = 0;
                 nombre = string.Empty;
                 telefono = string.Empty;
@@ -147,7 +147,6 @@
         }
     }
 
-    // --- 2. VALIDACIÓN ---
     private bool ValidarFormulario()
     {
         if (string.IsNullOrWhiteSpace(nombre))
@@ -155,11 +154,16 @@
             searchMessage = "El nombre es obligatorio.";
             return false;
         }
-        // Puedes agregar más validaciones aquí (ej. formato de cédula, correo)
+
+        if (!string.IsNullOrWhiteSpace(cedula) && !EsCedulaValida(cedula))
+        {
+            searchMessage = "La cédula ingresada no es válida.";
+            return false;
+        }
+
         return true;
     }
 
-    // --- 3. GUARDAR Y CONTINUAR (Función principal) ---
     private async Task GuardarYContinuarAsync()
     {
         if (!ValidarFormulario())
@@ -172,7 +176,6 @@
 
         try
         {
-            // 1. Preparamos el objeto Cliente
             var cliente = new Clientes
             {
                 IdCliente = editingClienteId,
@@ -180,30 +183,23 @@
                 Cedula = string.IsNullOrWhiteSpace(cedula) ? null : cedula,
                 Telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono,
                 Correo = string.IsNullOrWhiteSpace(correo) ? null : correo,
-                Fecha = DateTime.UtcNow // Fecha de creación o última modificación
+                Fecha = DateTime.UtcNow
             };
 
-            // Simplificamos: Guardar actualiza la fecha en el modelo.
-
-            // 2. Guardamos o actualizamos en la base de datos
             var saved = await clienteservice.Guardar(cliente);
 
             if (saved)
             {
-                // Si guardamos un cliente nuevo (IdCliente=0), necesitamos el Id generado por la DB.
-                // Si guardamos un cliente existente (IdCliente > 0), ya tenemos el Id.
                 if (cliente.IdCliente == 0)
                 {
-                    // Obtener copia fresca (con Id) desde la DB usando la Cédula
                     var persisted = await clienteservice.BuscarPorCedula(cliente.Cedula ?? string.Empty);
                     if (persisted is not null)
                     {
-                        editingClienteId = persisted.IdCliente; // Obtenemos el nuevo ID
+                        editingClienteId = persisted.IdCliente;
                     }
                 }
 
                 searchMessage = "Cliente guardado correctamente. Redirigiendo...";
-                // 3. Navegamos a la pantalla de selección de servicios, pasando los datos por Query String
                 NavegarAServicios();
             }
             else
@@ -224,7 +220,6 @@
 
     private void NavegarAServicios()
     {
-        // 4. Navegación: Pasamos IdCliente y los datos relevantes
         var uri = navigationManager.GetUriWithQueryParameters("/seleccion-servicio", new Dictionary<string, object?>
         {
             { "IdClienteRecibido", editingClienteId },
@@ -237,7 +232,32 @@
         navigationManager.NavigateTo(uri);
     }
 
-    // --- 4. LIMPIEZA / RESET ---
+    private bool EsCedulaValida(string pCedula)
+    {
+        if (string.IsNullOrWhiteSpace(pCedula)) return false;
+
+        string vcCedula = pCedula.Replace("-", "").Replace(" ", "");
+
+        if (vcCedula.Length != 11) return false;
+
+        if (!long.TryParse(vcCedula, out _)) return false;
+
+        int vnTotal = 0;
+        int[] digitoMult = new int[11] { 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1 };
+
+        for (int vDig = 1; vDig <= 11; vDig++)
+        {
+            int vCalculo = int.Parse(vcCedula.Substring(vDig - 1, 1)) * digitoMult[vDig - 1];
+
+            if (vCalculo < 10)
+                vnTotal += vCalculo;
+            else
+                vnTotal += int.Parse(vCalculo.ToString().Substring(0, 1)) + int.Parse(vCalculo.ToString().Substring(1, 1));
+        }
+
+        return vnTotal % 10 == 0;
+    }
+
     private void ResetForm()
     {
         editingClienteId = 0;
@@ -249,7 +269,6 @@
         searchMessage = null;
     }
 
-    // --- 5. LIMPIEZA DE RECURSOS ---
     public void Dispose()
     {
         _timer?.Dispose();

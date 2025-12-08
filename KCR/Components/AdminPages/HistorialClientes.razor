@@ -1,13 +1,11 @@
-﻿@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Administrador")]
-
+﻿@attribute [Authorize(Roles = "Administrador")]
 @page "/historial-clientes"
 @layout MainLayout
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 @inject ClienteService clienteService
-@inject PreFacturaService preFacturaService 
-@inject EmpleadoService empleadoService 
+@inject PreFacturaService preFacturaService
+@inject EmpleadoService empleadoService
 
 <div class="lista-empleados-page">
     <div class="content">
@@ -16,6 +14,28 @@
             <h1 class="list-title">HISTORIAL DE SERVICIOS Y CLIENTES</h1>
 
             <div class="top-toolbar">
+
+                <div class="search-group">
+                    <div class="col-2">
+                        <label class="search-input"><strong>Desde</strong></label>
+                    </div>
+
+                    <div class="col-3">
+                        <label class="search-input"><strong>Hasta</strong></label>
+                    </div>
+                </div>
+
+                @* Inputs sin el evento automático, solo bind *@
+                <div class="search-group">
+                    <div class="search-group">
+                        <InputDate class="form-control w-75" @bind-Value="FechaDesde" />
+                    </div>
+
+                    <div class="search-group">
+                        <InputDate class="form-control w-75" @bind-Value="FechaHasta" />
+                    </div>
+                </div>
+
                 <div class="filter-group">
                     <label for="filter-select">Filtrar por</label>
                     <select id="filter-select" class="form-select" @bind="Filtro">
@@ -29,7 +49,8 @@
                 <div class="search-group">
                     <label for="search-input">Búsqueda</label>
                     <div class="search-input-container">
-                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="ValorFiltro" @oninput="Buscar" />
+                        @* Usamos oninput para actualizar y buscar en tiempo real al escribir *@
+                        <input type="text" id="search-input" class="form-control" placeholder="Buscar" @bind="ValorFiltro" @oninput="ActualizarYBuscar" />
                         <span class="search-icon">🔍</span>
                     </div>
                 </div>
@@ -39,12 +60,12 @@
                 <table class="empleados-table">
                     <thead>
                         <tr>
-                            <th>ID F.</th> 
+                            <th>ID F.</th>
                             <th>CLIENTE</th>
                             <th>FECHA</th>
                             <th>ESTADO</th>
                             <th>EMPLEADO</th>
-                            <th>TOTAL</th> 
+                            <th>TOTAL</th>
                             <th>ACCIONES</th>
                         </tr>
                     </thead>
@@ -56,7 +77,7 @@
                                 <tr key="@item.IdPreFactura">
                                     <td>@item.IdPreFactura</td>
                                     <td>@item.NombreCliente</td>
-                                    <td>@item.Fecha.ToString("dd/MM/yyyy hh:mm")</td>
+                                    <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
                                     <td><span class="status-@item.Estado.ToLower()">@item.Estado</span></td>
                                     <td>@item.NombreEmpleado</td>
                                     <td class="text-right">@item.Total.ToString("C2")</td>
@@ -68,7 +89,7 @@
                         }
                         else
                         {
-                            <tr><td colspan="7" class="text-center">No se encontraron registros de facturas.</td></tr>
+                            <tr><td colspan="7" class="text-center">No se encontraron registros.</td></tr>
                         }
                     </tbody>
                 </table>
@@ -87,6 +108,10 @@
     public string Filtro { get; set; } = string.Empty;
     public string ValorFiltro { get; set; } = string.Empty;
 
+    // Revertido a DateTime.Now como pediste
+    private DateTime FechaDesde { get; set; } = DateTime.Now;
+    private DateTime FechaHasta { get; set; } = DateTime.Now;
+
     private List<HistorialViewModel> Historial { get; set; } = new();
     private List<PreFacturas> preFacturasDB { get; set; } = new();
 
@@ -94,10 +119,8 @@
     protected override async Task OnInitializedAsync()
     {
         preFacturasDB = await preFacturaService.Listar(p => p.IdPreFactura > 0);
-
-        await GenerarHistorialViewModel(preFacturasDB);
+        await Buscar();
     }
-
 
     private async Task GenerarHistorialViewModel(List<PreFacturas> facturas)
     {
@@ -105,11 +128,14 @@
 
         foreach (var factura in facturas)
         {
-
             var cliente = factura.IdCliente.HasValue ? await clienteService.Buscar(factura.IdCliente.Value) : null;
             var empleado = await empleadoService.Buscar(factura.IdEmpleado);
 
-            decimal totalCalculado = factura.PreFacturaDetalles.Sum(d => d.Cantidad * d.PrecioUnitario);
+            decimal totalCalculado = 0;
+            if (factura.PreFacturaDetalles != null)
+            {
+                totalCalculado = factura.PreFacturaDetalles.Sum(d => d.Cantidad * d.PrecioUnitario);
+            }
 
             historialTemp.Add(new HistorialViewModel
             {
@@ -124,59 +150,60 @@
         Historial = historialTemp;
     }
 
-
+    // Mantenemos este helper para que el buscador de texto funcione correctamente con la lógica combinada
+    private async Task ActualizarYBuscar(ChangeEventArgs e)
+    {
+        ValorFiltro = e.Value?.ToString() ?? string.Empty;
+        await Buscar();
+    }
 
     public async Task Buscar()
     {
-        if (string.IsNullOrWhiteSpace(ValorFiltro))
+        var consulta = preFacturasDB.AsEnumerable();
+
+        // Lógica de filtrado por fecha
+        consulta = consulta.Where(p => p.Fecha.Date >= FechaDesde.Date && p.Fecha.Date <= FechaHasta.Date);
+
+        // Lógica de filtrado por texto
+        if (!string.IsNullOrWhiteSpace(ValorFiltro))
         {
-            await OnInitializedAsync();
-            return;
+            var valorBusqueda = ValorFiltro.ToLower().Trim();
+
+            if (Filtro == "Cliente")
+            {
+                var clientesMatch = await clienteService.Listar(c => c.Nombres.ToLower().Contains(valorBusqueda));
+                var idsClientes = clientesMatch.Select(c => c.IdCliente).ToList();
+                consulta = consulta.Where(p => p.IdCliente.HasValue && idsClientes.Contains(p.IdCliente.Value));
+            }
+            else if (Filtro == "Empleado")
+            {
+                var empleadosMatch = await empleadoService.Listar(e => e.Nombre.ToLower().Contains(valorBusqueda));
+                var idsEmpleados = empleadosMatch.Select(e => e.IdEmpleado).ToList();
+                consulta = consulta.Where(p => idsEmpleados.Contains(p.IdEmpleado));
+            }
+            else if (Filtro == "FacturaID")
+            {
+                if (int.TryParse(ValorFiltro, out var id))
+                    consulta = consulta.Where(p => p.IdPreFactura == id);
+            }
+            else if (Filtro == "Estado")
+            {
+                consulta = consulta.Where(p => p.Estado.ToLower().Contains(valorBusqueda));
+            }
         }
 
-        var valorBusqueda = ValorFiltro.ToLower().Trim();
-        var facturasFiltradas = preFacturasDB;
-
-        if (Filtro == "Cliente")
-        {
-            var clientesMatch = await clienteService.Listar(c => c.Nombres.ToLower().Contains(valorBusqueda));
-            var idsClientes = clientesMatch.Select(c => c.IdCliente).ToList();
-            facturasFiltradas = preFacturasDB.Where(p => p.IdCliente.HasValue && idsClientes.Contains(p.IdCliente.Value)).ToList();
-        }
-        else if (Filtro == "Empleado")
-        {
-            var empleadosMatch = await empleadoService.Listar(e => e.Nombre.ToLower().Contains(valorBusqueda));
-            var idsEmpleados = empleadosMatch.Select(e => e.IdEmpleado).ToList();
-            facturasFiltradas = preFacturasDB.Where(p => idsEmpleados.Contains(p.IdEmpleado)).ToList();
-        }
-        else if (Filtro == "FacturaID")
-        {
-            if (int.TryParse(ValorFiltro, out var id))
-                facturasFiltradas = preFacturasDB.Where(p => p.IdPreFactura == id).ToList();
-        }
-        else if (Filtro == "Estado")
-        {
-            facturasFiltradas = preFacturasDB.Where(p => p.Estado.ToLower().Contains(valorBusqueda)).ToList();
-        }
-        else
-        {
-            facturasFiltradas = preFacturasDB;
-        }
-
-        await GenerarHistorialViewModel(facturasFiltradas);
+        await GenerarHistorialViewModel(consulta.ToList());
     }
 
     private void VerDetalle(int id)
     {
-
         navigationManager.NavigateTo($"/detalle-factura/{id}");
     }
 
     private void Volver()
     {
-        navigationManager.NavigateTo("/"); 
+        navigationManager.NavigateTo("/");
     }
-
 
     public class HistorialViewModel
     {
