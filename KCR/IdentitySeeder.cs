@@ -1,9 +1,9 @@
 ﻿namespace KCR;
 
 using KCR.Data;
-using KCR.Models; // Necesario para acceder a la tabla Empleados
+using KCR.Models; 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore; // Necesario para consultas de BD
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -19,26 +19,22 @@ public static class IdentitySeeder
         IServiceProvider serviceProvider,
         string adminPassword)
     {
-        // 1. Obtener los servicios necesarios (Identity + Base de Datos de Negocio)
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var context = serviceProvider.GetRequiredService<ApplicationDbContext>(); // <--- ¡Vital!
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>(); 
 
-        // 2. Crear los roles si no existen
         await CreateRoleIfNotExists(roleManager, AdminRole);
         await CreateRoleIfNotExists(roleManager, EmpleadoExpressRole);
         await CreateRoleIfNotExists(roleManager, EmpleadoDERole);
 
-        // 3. Crear el usuario Administrador
         await CreateAdminUser(userManager, context, AdminRole, adminPassword);
 
-        // 4. Crear los usuarios empleados específicos
-        string passwordEmpleados = "PasswordSeguro123!"; // Contraseña común para pruebas
+        string passwordEmpleados = "PasswordSeguro123!";
 
-        // Usuario Empleado Express
+
         await CreateUserIfNotExists(
             userManager,
-            context, // Pasamos el contexto
+            context, 
             "EmpleadoExpress@kcr.com",
             passwordEmpleados,
             EmpleadoExpressRole,
@@ -47,10 +43,9 @@ public static class IdentitySeeder
             "Operador Express"
         );
 
-        // Usuario Empleado DE
         await CreateUserIfNotExists(
             userManager,
-            context, // Pasamos el contexto
+            context, 
             "EmpleadoDE@kcr.com",
             passwordEmpleados,
             EmpleadoDERole,
@@ -93,13 +88,11 @@ public static class IdentitySeeder
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, adminRole);
-                // Sincronizar con tabla Empleados
                 await SincronizarEmpleado(context, adminUser);
             }
         }
         else
         {
-            // Si el usuario ya existe en Login pero se borró la BD de empleados, lo recreamos
             var existingUser = await userManager.FindByEmailAsync(adminEmail);
             await SincronizarEmpleado(context, existingUser);
         }
@@ -132,22 +125,17 @@ public static class IdentitySeeder
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(user, role);
-                // Sincronizar con tabla Empleados
                 await SincronizarEmpleado(context, user);
             }
         }
         else
         {
-            // Si el usuario ya existe en Login pero se borró la BD de empleados, lo recreamos
             var existingUser = await userManager.FindByEmailAsync(email);
             await SincronizarEmpleado(context, existingUser);
         }
     }
-
-    // Método auxiliar para evitar repetir código de guardado en la tabla Empleados
     private static async Task SincronizarEmpleado(ApplicationDbContext context, ApplicationUser userIdentity)
     {
-        // Verificamos si ya existe en la tabla de negocio
         var existeEnNegocio = await context.empleados.AnyAsync(e => e.Usuario == userIdentity.Email);
 
         if (!existeEnNegocio)
@@ -155,8 +143,8 @@ public static class IdentitySeeder
             var nuevoEmpleado = new Empleados
             {
                 Nombre = userIdentity.Nombre,
-                Usuario = userIdentity.Email, // Clave para vincular Login con Datos
-                Clave = "******", // No guardamos la real aquí, Identity la maneja
+                Usuario = userIdentity.Email, 
+                Clave = "******",
                 Cedula = userIdentity.Cedula,
                 Cargo = userIdentity.Cargo
             };
