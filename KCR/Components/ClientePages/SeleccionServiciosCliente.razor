@@ -2,17 +2,15 @@
 
 @page "/seleccion-servicio"
 
-@using KCR.Models
-@using KCR.Services
-@using Microsoft.AspNetCore.Components
-
+@inject ToastService toastService
 @inject ClienteService clienteService
 @inject TurnoService turnoService
-@inject PreFacturaService preFacturaService // ⬅️ Servicio re-inyectado
+@inject PreFacturaService preFacturaService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
 <div class="servicio-container">
+    <Toasts class="p-3 toast-grande" AutoHide="true" Delay="4000" Placement="ToastsPlacement.BottomRight" />
 
     <img src="/Img-Vector/Union-1.svg" class="vector-decor top-left" />
     <img src="/Img-Vector/Union-2.svg" class="vector-decor top-right" />
@@ -266,7 +264,7 @@
 
         if (!guardadoCliente)
         {
-            Console.WriteLine("Error al guardar o actualizar el cliente.");
+            toastService.ShowError("Error al guardar o actualizar el cliente.");
             return;
         }
 
@@ -293,16 +291,14 @@
 
             if (turnoGuardado)
             {
+                toastService.ShowSuccess("El turno se genero correctamente");
+                await Task.Delay(4000);
                 navigationManager.NavigateTo("/cliente");
             }
             else
             {
-                Console.WriteLine("Error: Falló el registro del Turno en la base de datos.");
+                toastService.ShowError("Error al generar turno");
             }
-        }
-        else
-        {
-            Console.WriteLine("Error: No se pudo obtener el ID del cliente para el turno.");
         }
     }
 

@@ -5,16 +5,10 @@
 
 @layout MainLayout
 @rendermode InteractiveServer
-
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Identity
-@using KCR.Data
-
-
+@inject ToastService toastService
 @inject UserManager<ApplicationUser> UserManager
-@inject NavigationManager Navigation
+@inject NavigationManager navigationManager
 @inject ILogger<RegistroEmpleados> Logger
-@* --- NUEVO: Inyectamos el servicio para guardar en la tabla Empleados --- *@
 @inject EmpleadoService empleadoService
 
 <div class="registro-container">
@@ -23,7 +17,7 @@
         <div class="card-header">
             <h3>Registro de Empleado</h3>
         </div>
-
+        <Toasts class="p-3 toast-grande" AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />
         <EditForm Model="Input" OnValidSubmit="GuardarEmpleado" FormName="registro-empleado-form">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
@@ -97,7 +91,6 @@
     {
         statusMessage = null;
 
-        // 1. Crear el objeto ApplicationUser (Identity)
         var user = new ApplicationUser
         {
             UserName = Input.Email,
@@ -108,44 +101,34 @@
             Cargo = Input.Cargo
         };
 
-        // 2. Intentar crear el usuario en Identity (Sistema de Login)
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (result.Succeeded)
         {
-            // 3. Asignar el Rol seleccionado en el formulario
-            // Usamos Input.Cargo directamente porque los valores del select ("EmpleadoExpress", "EmpleadoDE")
-            // coinciden con los nombres de tus roles.
             var roleResult = await UserManager.AddToRoleAsync(user, Input.Cargo);
 
             if (roleResult.Succeeded)
             {
-                // --- NUEVO: Sincronizar con la tabla de negocio 'Empleados' ---
-                // Esto es vital para que no falle la facturación (Foreign Key error)
                 var nuevoEmpleadoBD = new Empleados
                 {
                     Nombre = Input.Nombre,
-                    Usuario = Input.Email, // Este campo vincula ambas tablas
+                    Usuario = Input.Email,
                     Cedula = Input.Cedula,
                     Cargo = Input.Cargo,
-                    Clave = "******" // Ponemos un placeholder o Input.Password si prefieres
+                    Clave = "******"
                 };
 
-                var guardadoBD = await empleadoService.Insertar(nuevoEmpleadoBD);
+                var guardadoBD = await empleadoService.Guardar(nuevoEmpleadoBD);
 
                 if (guardadoBD)
                 {
                     Logger.LogInformation("Usuario registrado en Identity y Base de Datos local.");
                     statusMessage = $"Éxito: Empleado registrado correctamente con rol '{Input.Cargo}'.";
-                    Input = new InputModel(); // Limpiar formulario
+                    Input = new InputModel(); 
+                    toastService.ShowSuccess("El empleado se guardo correctamente");
+                    await Task.Delay(4000);
+                    navigationManager.NavigateTo("/lista-empleados");
                 }
-                else
-                {
-                    // Si falla guardar en la tabla Empleados, podríamos considerar borrar el usuario de Identity
-                    // para mantener la consistencia, o solo avisar.
-                    statusMessage = "Advertencia: El usuario se creó el login, pero falló al guardar en la tabla de empleados.";
-                }
-                // -------------------------------------------------------------
             }
             else
             {
@@ -156,12 +139,14 @@
         else
         {
             statusMessage = $"Error al crear usuario: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            toastService.ShowError("Error al crear usuario");
+            await Task.Delay(4000);
         }
     }
 
     private void IrAtras()
     {
-        Navigation.NavigateTo("/pantalla-principal-admin");
+        navigationManager.NavigateTo("/pantalla-principal-admin");
     }
 
     public sealed class InputModel

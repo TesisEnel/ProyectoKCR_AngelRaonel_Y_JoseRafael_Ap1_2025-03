@@ -1,6 +1,5 @@
 ﻿@page "/prefactura/{TurnoId:int}"
 @layout ClientLayout
-@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "EmpleadoExpress, EmpleadoDE, Administrador")]
 
 @inject AuthenticationStateProvider AuthStateProvider
@@ -9,11 +8,13 @@
 @inject TurnoService turnoService
 @inject PreFacturaService preFacturaService
 @rendermode InteractiveServer
+@inject ToastService toastService
 
 @using System.Globalization
 @using KCR.Models
 
 <div class="prefactura-container">
+    <Toasts class="p-3 toast-grande" AutoHide="true" Delay="4000" Placement="ToastsPlacement.BottomRight" />
     <h1 class="main-title">GENERACIÓN DE PRE-FACTURA</h1>
 
     @if (isLoading)
@@ -228,7 +229,6 @@
         var user = authState.User;
 
         string nombreUsuario = user.Identity?.Name ?? "";
-        Console.WriteLine($"Usuario detectado: {nombreUsuario}");
 
         var lista = await empleadoService.Listar(e => e.Nombre == nombreUsuario);
         var empleadoDB = lista.FirstOrDefault();
@@ -245,10 +245,8 @@
             PreFacturaDetalles = new List<PreFacturaDetalles>()
         };
 
-        // ... Agregar detalles ...
         foreach (var item in PreFacturaItems)
         {
-            // ... tu lógica de detalles ...
             nuevaPreFactura.PreFacturaDetalles.Add(new PreFacturaDetalles
             {
                 IdServicio = item.IdServicio,
@@ -258,14 +256,18 @@
             });
         }
 
-        Console.WriteLine($"Guardando factura con Empleado ID: {nuevaPreFactura.IdEmpleado}");
-
         var guardado = await preFacturaService.Guardar(nuevaPreFactura);
 
         if (guardado)
         {
             await turnoService.CambiarEstadoAsync(TurnoId, "Pre-Facturado");
+            toastService.ShowSuccess("La Pre-factura fue enviada exitosamente a la caja principal.");
+            await Task.Delay(4000);
             navigationManager.NavigateTo($"/empleado/{AreaActual}");
+        }
+        else
+        {
+            toastService.ShowError("Error al generar la PreFactura");
         }
     }
 }

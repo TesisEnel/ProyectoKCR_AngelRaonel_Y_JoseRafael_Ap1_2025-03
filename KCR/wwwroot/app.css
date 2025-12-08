@@ -1840,3 +1840,15 @@ h1:focus {
     padding: 30px;
     font-size: 1.2em;
 }
+
+
+.toast-grande .toast {
+    width: 500px !important; 
+    max-width: 90vw !important; 
+    font-size: 1.2rem; 
+}
+
+
+.toast-grande .toast-header strong {
+    font-size: 1.3rem;
+}
