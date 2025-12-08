@@ -143,7 +143,6 @@
             }
             else if (Filtro == "IdEmpleado")
             {
-                // Manejo seguro para ID (entero)
                 if (int.TryParse(ValorFiltro.Trim(), out int idBusqueda))
                 {
                     lista = lista.Where(e => e.IdEmpleado == idBusqueda);
