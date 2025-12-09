@@ -16,6 +16,7 @@ public class Materiales
     [Required(ErrorMessage = "El nombre del cliente es requerido")]
     [Range(0.01, double.MaxValue, ErrorMessage = "El total debe ser mayor que 0")]
     public double PrecioUnitario { get; set; }
+    public bool Activo { get; set; } = true;
 
     public ICollection<PreFacturaDetalles> PreFacturaDetalles { get; set; } = new List<PreFacturaDetalles>();
 }
