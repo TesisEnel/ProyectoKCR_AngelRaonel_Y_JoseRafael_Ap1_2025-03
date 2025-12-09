@@ -1,5 +1,6 @@
 ﻿@attribute [Authorize(Roles = "Administrador")]
 @page "/registro-empleado"
+@page "/modificar-empleado/{EmpleadoId:int}"
 @layout MainLayout
 @rendermode InteractiveServer
 @inject ToastService toastService
@@ -11,7 +12,7 @@
 <div class="registro-container">
     <div class="form-card">
         <div class="card-header">
-            <h3>Registro de Empleado</h3>
+            <h3>@(EmpleadoId > 0 ? "Modificar Empleado" : "Registro de Empleado")</h3>
         </div>
         <Toasts class="p-3 toast-grande" AutoHide="true" Delay="4000" Placement="ToastsPlacement.TopRight" />
         <EditForm Model="Input" OnValidSubmit="GuardarEmpleado" FormName="registro-empleado-form">
@@ -23,7 +24,7 @@
 
                 <div class="form-row">
                     <label>IdEmpleado</label>
-                    <input type="text" class="input-corto" readonly value="Auto" />
+                    <input type="text" class="input-corto" readonly value="@(EmpleadoId > 0 ? EmpleadoId.ToString() : "Auto")" />
                 </div>
 
                 <div class="form-row">
@@ -34,7 +35,7 @@
 
                 <div class="form-row">
                     <label>Cédula</label>
-                    <InputText type="text" @bind-Value="Input.Cedula" />
+                    <InputText type="text" @bind-Value="Input.Cedula" disabled="@(EmpleadoId > 0)" />
                     <ValidationMessage For="() => Input.Cedula" class="text-danger" />
                 </div>
 
@@ -50,12 +51,12 @@
 
                 <div class="form-row">
                     <label>Usuario (Email)</label>
-                    <InputText type="email" @bind-Value="Input.Email" />
+                    <InputText type="email" @bind-Value="Input.Email" disabled="@(EmpleadoId > 0)" />
                     <ValidationMessage For="() => Input.Email" class="text-danger" />
                 </div>
 
                 <div class="form-row">
-                    <label>Clave</label>
+                    <label>Clave @(EmpleadoId > 0 ? "(Dejar vacío para no cambiar)" : "")</label>
                     <InputText type="password" @bind-Value="Input.Password" />
                     <ValidationMessage For="() => Input.Password" class="text-danger" />
                 </div>
@@ -63,7 +64,7 @@
 
             <div class="card-footer-buttons">
                 <button type="button" class="btn-volver" @onclick="IrAtras">Volver</button>
-                <button type="submit" class="btn-guardar">Guardar</button>
+                <button type="submit" class="btn-guardar">@(EmpleadoId > 0 ? "Actualizar" : "Guardar")</button>
             </div>
         </EditForm>
     </div>
@@ -71,14 +72,52 @@
 </div>
 
 @code {
+    [Parameter]
+    public int EmpleadoId { get; set; }
     private string? statusMessage;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    private Empleados? EmpleadoEnBD;
+    private ApplicationUser? UserEnBD;
+
     protected override void OnInitialized()
     {
         Input ??= new InputModel();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (EmpleadoId > 0)
+        {
+            EmpleadoEnBD = await empleadoService.Buscar(EmpleadoId);
+
+            if (EmpleadoEnBD != null)
+            {
+                UserEnBD = await UserManager.FindByEmailAsync(EmpleadoEnBD.Usuario);
+
+                if (UserEnBD != null)
+                {
+                    Input.IdEmpleado = EmpleadoEnBD.IdEmpleado;
+                    Input.Nombre = EmpleadoEnBD.Nombre;
+                    Input.Cedula = EmpleadoEnBD.Cedula;
+                    Input.Cargo = EmpleadoEnBD.Cargo;
+                    Input.Email = UserEnBD.Email ?? string.Empty;
+                    Input.Password = string.Empty;
+                }
+                else
+                {
+                    statusMessage = "Error: Usuario Identity no encontrado para este empleado.";
+                    toastService.ShowError("Error de sincronización");
+                }
+            }
+            else
+            {
+                statusMessage = $"Error: Empleado con ID {EmpleadoId} no encontrado.";
+                toastService.ShowError("Empleado no existe");
+            }
+        }
     }
 
     private async Task GuardarEmpleado()
@@ -92,64 +131,125 @@
             return;
         }
 
-        var existeEnBD = await empleadoService.Listar(e => e.Cedula == Input.Cedula);
-        if (existeEnBD.Any())
+        if (EmpleadoId > 0 && EmpleadoEnBD != null && UserEnBD != null)
         {
-            statusMessage = "Error: Ya existe un empleado registrado con esta cédula.";
-            toastService.ShowError("La cédula ya existe en el sistema");
+            EmpleadoEnBD.Nombre = Input.Nombre;
+            EmpleadoEnBD.Cargo = Input.Cargo;
+
+            var guardadoBD = await empleadoService.Modificar(EmpleadoEnBD);
+
+            var currentRoles = await UserManager.GetRolesAsync(UserEnBD);
+            if (!currentRoles.Contains(Input.Cargo))
+            {
+                await UserManager.RemoveFromRolesAsync(UserEnBD, currentRoles);
+                await UserManager.AddToRoleAsync(UserEnBD, Input.Cargo);
+            }
+
+            UserEnBD.Nombre = Input.Nombre;
+            var userResult = await UserManager.UpdateAsync(UserEnBD);
+
+            if (!string.IsNullOrWhiteSpace(Input.Password))
+            {
+                var token = await UserManager.GeneratePasswordResetTokenAsync(UserEnBD);
+                var passwordResult = await UserManager.ResetPasswordAsync(UserEnBD, token, Input.Password);
+                if (!passwordResult.Succeeded)
+                {
+                    statusMessage = $"Error al cambiar clave: {string.Join(", ", passwordResult.Errors.Select(e => e.Description))}";
+                    toastService.ShowError("Error al cambiar clave");
+                    return;
+                }
+            }
+
+            if (guardadoBD && userResult.Succeeded)
+            {
+                statusMessage = $"Éxito: Empleado actualizado correctamente con rol '{Input.Cargo}'.";
+                toastService.ShowSuccess("Empleado actualizado correctamente");
+                await Task.Delay(2000);
+                navigationManager.NavigateTo("/lista-empleados");
+            }
+            else
+            {
+                statusMessage = $"Error al actualizar datos. BD: {guardadoBD}. Identity: {string.Join(", ", userResult.Errors.Select(e => e.Description))}";
+                toastService.ShowError("Error al actualizar");
+            }
             return;
         }
 
-        var user = new ApplicationUser
+        if (EmpleadoId == 0)
         {
-            UserName = Input.Email,
-            Email = Input.Email,
-            EmailConfirmed = true,
-            Nombre = Input.Nombre,
-            Cedula = Input.Cedula,
-            Cargo = Input.Cargo
-        };
-
-        var result = await UserManager.CreateAsync(user, Input.Password);
-
-        if (result.Succeeded)
-        {
-            var roleResult = await UserManager.AddToRoleAsync(user, Input.Cargo);
-
-            if (roleResult.Succeeded)
+            var existeEnBD = await empleadoService.Listar(e => e.Cedula == Input.Cedula);
+            if (existeEnBD.Any())
             {
-                var nuevoEmpleadoBD = new Empleados
-                {
-                    Nombre = Input.Nombre,
-                    Usuario = Input.Email,
-                    Cedula = Input.Cedula,
-                    Cargo = Input.Cargo,
-                    Clave = "******"
-                };
+                statusMessage = "Error: Ya existe un empleado registrado con esta cédula.";
+                toastService.ShowError("La cédula ya existe en el sistema");
+                return;
+            }
 
-                var guardadoBD = await empleadoService.Guardar(nuevoEmpleadoBD);
+            var existingUser = await UserManager.FindByNameAsync(Input.Email);
+            if (existingUser != null)
+            {
+                statusMessage = "Error: Ya existe un usuario registrado con este correo electrónico.";
+                toastService.ShowError("El correo ya está en uso");
+                return;
+            }
 
-                if (guardadoBD)
+            var user = new ApplicationUser
+            {
+                UserName = Input.Email,
+                Email = Input.Email,
+                EmailConfirmed = true,
+                Nombre = Input.Nombre,
+                Cedula = Input.Cedula,
+                Cargo = Input.Cargo
+            };
+
+            var result = await UserManager.CreateAsync(user, Input.Password);
+
+            if (result.Succeeded)
+            {
+                var roleResult = await UserManager.AddToRoleAsync(user, Input.Cargo);
+
+                if (roleResult.Succeeded)
                 {
-                    Logger.LogInformation("Usuario registrado en Identity y Base de Datos local.");
-                    statusMessage = $"Éxito: Empleado registrado correctamente con rol '{Input.Cargo}'.";
-                    Input = new InputModel();
-                    toastService.ShowSuccess("El empleado se guardo correctamente");
-                    await Task.Delay(4000);
-                    navigationManager.NavigateTo("/lista-empleados");
+                    var nuevoEmpleadoBD = new Empleados
+                    {
+                        Nombre = Input.Nombre,
+                        Usuario = Input.Email,
+                        Cedula = Input.Cedula,
+                        Cargo = Input.Cargo,
+                        Clave = "******"
+                    };
+
+                    var guardadoBD = await empleadoService.Guardar(nuevoEmpleadoBD);
+
+                    if (guardadoBD)
+                    {
+                        Logger.LogInformation("Usuario registrado en Identity y Base de Datos local.");
+                        statusMessage = $"Éxito: Empleado registrado correctamente con rol '{Input.Cargo}'.";
+                        Input = new InputModel();
+                        toastService.ShowSuccess("El empleado se guardó correctamente");
+                        await Task.Delay(2000);
+                        navigationManager.NavigateTo("/lista-empleados");
+                    }
+                    else
+                    {
+                        await UserManager.DeleteAsync(user);
+                        statusMessage = "Error al guardar el empleado en la Base de Datos local. Rollback ejecutado.";
+                        toastService.ShowError("Error al guardar en BD");
+                    }
+                }
+                else
+                {
+                    await UserManager.DeleteAsync(user);
+                    statusMessage = $"Error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                    toastService.ShowError("Error de rol");
                 }
             }
             else
             {
-                await UserManager.DeleteAsync(user);
-                statusMessage = $"Error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                statusMessage = $"Error al crear usuario: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+                toastService.ShowError("Error al crear usuario");
             }
-        }
-        else
-        {
-            statusMessage = $"Error al crear usuario: {string.Join(", ", result.Errors.Select(e => e.Description))}";
-            toastService.ShowError("Error al crear usuario");
-            await Task.Delay(4000);
         }
     }
 
@@ -181,16 +281,17 @@
 
     private void IrAtras()
     {
-        navigationManager.NavigateTo("/pantalla-principal-admin");
+        navigationManager.NavigateTo("/lista-empleados");
     }
 
     public sealed class InputModel
     {
+        public int IdEmpleado { get; set; }
+
         [Required(ErrorMessage = "El correo es requerido.")]
         [EmailAddress(ErrorMessage = "Formato inválido.")]
         public string Email { get; set; } = "";
 
-        [Required(ErrorMessage = "La clave es requerida.")]
         [StringLength(100, ErrorMessage = "Mínimo {2} caracteres.", MinimumLength = 6)]
         public string Password { get; set; } = "";
 

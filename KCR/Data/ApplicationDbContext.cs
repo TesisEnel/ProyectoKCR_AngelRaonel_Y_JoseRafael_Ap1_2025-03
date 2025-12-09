@@ -32,7 +32,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Servicios>(entity =>
         {
             entity.HasData(
-                // COPIAS (Precios con M para decimal)
+                // COPIAS
                 new Servicios { IdServicio = 1, Nombre = "COPIA B/N 8.5x11 (Bond)", Precio = 5.00 },
                 new Servicios { IdServicio = 2, Nombre = "COPIA B/N 8.5x14 (Bond)", Precio = 10.00 },
                 new Servicios { IdServicio = 3, Nombre = "COPIA B/N 11x17 (Bond)", Precio = 15.00 },
