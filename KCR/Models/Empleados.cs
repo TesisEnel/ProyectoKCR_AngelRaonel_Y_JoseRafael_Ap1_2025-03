@@ -20,7 +20,8 @@ public class Empleados
     [StringLength(11, MinimumLength = 11, ErrorMessage = "La Cédula debe tener 11 dígitos.")]
     [RegularExpression(@"^\d{11}$", ErrorMessage = "Solo se permiten 11 dígitos numéricos.")]
     public string? Cedula { get; set; }
-
+    [Required(ErrorMessage = "El cargo es obligatorio.")]
+    [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.-]+$", ErrorMessage = "El cargo solo puede contener letras y espacios.")]
     public string? Cargo { get; set; }
 
     public ICollection<PreFacturas> PreFacturas { get; set; } = new List<PreFacturas>();
