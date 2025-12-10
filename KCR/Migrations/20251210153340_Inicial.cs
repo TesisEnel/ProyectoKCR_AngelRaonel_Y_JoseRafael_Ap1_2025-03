@@ -62,7 +62,7 @@ namespace KCR.Migrations
                     IdCliente = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombres = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Cedula = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cedula = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: true),
                     Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Correo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Fecha = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -81,8 +81,8 @@ namespace KCR.Migrations
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Clave = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Cedula = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Cargo = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Cedula = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: true),
+                    Cargo = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -97,7 +97,8 @@ namespace KCR.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Existencia = table.Column<int>(type: "int", nullable: false),
-                    PrecioUnitario = table.Column<double>(type: "float", nullable: false)
+                    PrecioUnitario = table.Column<double>(type: "float", nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -322,41 +323,12 @@ namespace KCR.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "materiales",
-                columns: new[] { "IdMaterial", "Existencia", "Nombre", "PrecioUnitario" },
-                values: new object[,]
-                {
-                    { 1, 500, "Papel Bond 8.5x11", 1.0 },
-                    { 2, 500, "Papel Bond 8.5x14", 1.5 },
-                    { 3, 500, "Papel Bond 11x17", 2.0 },
-                    { 4, 500, "Cartonite 11x17", 10.0 },
-                    { 5, 500, "Opalina 11x17", 15.0 }
-                });
-
-            migrationBuilder.InsertData(
                 table: "servicios",
                 columns: new[] { "IdServicio", "Nombre", "Precio", "Tipo" },
                 values: new object[,]
                 {
-                    { 1, "COPIA B/N 8.5x11 (Bond)", 5.0, null },
-                    { 2, "COPIA B/N 8.5x14 (Bond)", 10.0, null },
-                    { 3, "COPIA B/N 11x17 (Bond)", 15.0, null },
-                    { 4, "COPIA COLOR 8.5x11 (Bond)", 15.0, null },
-                    { 5, "IMPRESION B/N 8.5x11 (Bond)", 5.0, null },
-                    { 6, "IMPRESION COLOR 8.5x11 (Bond)", 20.0, null },
-                    { 7, "IMPRESION COLOR 8.5x14 (Bond)", 25.0, null },
-                    { 8, "IMPRESION COLOR 11x17 (Bond)", 40.0, null },
-                    { 9, "IMPRESION COLOR 11x17 (Cartonité)", 75.0, null },
-                    { 10, "IMPRESION COLOR 11x17 (Opalina)", 85.0, null },
-                    { 11, "IMPRESION PLANO 24x36", 50.0, null },
-                    { 12, "IMPRESION PLANO 18x24", 30.0, null },
-                    { 13, "ENCUADERNADO (Pequeño/Carta)", 50.0, null },
-                    { 14, "ENCUADERNADO (Mediano/Oficio)", 75.0, null },
-                    { 15, "ENCUADERNADO (Grande/Doble Carta)", 100.0, null },
-                    { 16, "ESCANER", 15.0, null },
-                    { 17, "DISEÑO", 500.0, null },
-                    { 18, "SERVICIO EXPRESS", 0.0, null },
-                    { 19, "DISEÑO Y EDICIÓN", 0.0, null }
+                    { 1, "SERVICIO EXPRESS", 0.0, null },
+                    { 2, "DISEÑO Y EDICIÓN", 0.0, null }
                 });
 
             migrationBuilder.CreateIndex(

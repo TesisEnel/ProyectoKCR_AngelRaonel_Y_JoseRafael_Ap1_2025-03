@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KCR.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251209013950_Validations")]
-    partial class Validations
+    [Migration("20251210153340_Inicial")]
+    partial class Inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -141,6 +141,7 @@ namespace KCR.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdEmpleado"));
 
                     b.Property<string>("Cargo")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Cedula")
@@ -173,6 +174,9 @@ namespace KCR.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdMaterial"));
 
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Existencia")
                         .HasColumnType("int");
 
@@ -186,43 +190,6 @@ namespace KCR.Migrations
                     b.HasKey("IdMaterial");
 
                     b.ToTable("materiales");
-
-                    b.HasData(
-                        new
-                        {
-                            IdMaterial = 1,
-                            Existencia = 500,
-                            Nombre = "Papel Bond 8.5x11",
-                            PrecioUnitario = 1.0
-                        },
-                        new
-                        {
-                            IdMaterial = 2,
-                            Existencia = 500,
-                            Nombre = "Papel Bond 8.5x14",
-                            PrecioUnitario = 1.5
-                        },
-                        new
-                        {
-                            IdMaterial = 3,
-                            Existencia = 500,
-                            Nombre = "Papel Bond 11x17",
-                            PrecioUnitario = 2.0
-                        },
-                        new
-                        {
-                            IdMaterial = 4,
-                            Existencia = 500,
-                            Nombre = "Cartonite 11x17",
-                            PrecioUnitario = 10.0
-                        },
-                        new
-                        {
-                            IdMaterial = 5,
-                            Existencia = 500,
-                            Nombre = "Opalina 11x17",
-                            PrecioUnitario = 15.0
-                        });
                 });
 
             modelBuilder.Entity("KCR.Models.PreFacturaDetalles", b =>
@@ -329,114 +296,12 @@ namespace KCR.Migrations
                         new
                         {
                             IdServicio = 1,
-                            Nombre = "COPIA B/N 8.5x11 (Bond)",
-                            Precio = 5.0
-                        },
-                        new
-                        {
-                            IdServicio = 2,
-                            Nombre = "COPIA B/N 8.5x14 (Bond)",
-                            Precio = 10.0
-                        },
-                        new
-                        {
-                            IdServicio = 3,
-                            Nombre = "COPIA B/N 11x17 (Bond)",
-                            Precio = 15.0
-                        },
-                        new
-                        {
-                            IdServicio = 4,
-                            Nombre = "COPIA COLOR 8.5x11 (Bond)",
-                            Precio = 15.0
-                        },
-                        new
-                        {
-                            IdServicio = 5,
-                            Nombre = "IMPRESION B/N 8.5x11 (Bond)",
-                            Precio = 5.0
-                        },
-                        new
-                        {
-                            IdServicio = 6,
-                            Nombre = "IMPRESION COLOR 8.5x11 (Bond)",
-                            Precio = 20.0
-                        },
-                        new
-                        {
-                            IdServicio = 7,
-                            Nombre = "IMPRESION COLOR 8.5x14 (Bond)",
-                            Precio = 25.0
-                        },
-                        new
-                        {
-                            IdServicio = 8,
-                            Nombre = "IMPRESION COLOR 11x17 (Bond)",
-                            Precio = 40.0
-                        },
-                        new
-                        {
-                            IdServicio = 9,
-                            Nombre = "IMPRESION COLOR 11x17 (Cartonité)",
-                            Precio = 75.0
-                        },
-                        new
-                        {
-                            IdServicio = 10,
-                            Nombre = "IMPRESION COLOR 11x17 (Opalina)",
-                            Precio = 85.0
-                        },
-                        new
-                        {
-                            IdServicio = 11,
-                            Nombre = "IMPRESION PLANO 24x36",
-                            Precio = 50.0
-                        },
-                        new
-                        {
-                            IdServicio = 12,
-                            Nombre = "IMPRESION PLANO 18x24",
-                            Precio = 30.0
-                        },
-                        new
-                        {
-                            IdServicio = 13,
-                            Nombre = "ENCUADERNADO (Pequeño/Carta)",
-                            Precio = 50.0
-                        },
-                        new
-                        {
-                            IdServicio = 14,
-                            Nombre = "ENCUADERNADO (Mediano/Oficio)",
-                            Precio = 75.0
-                        },
-                        new
-                        {
-                            IdServicio = 15,
-                            Nombre = "ENCUADERNADO (Grande/Doble Carta)",
-                            Precio = 100.0
-                        },
-                        new
-                        {
-                            IdServicio = 16,
-                            Nombre = "ESCANER",
-                            Precio = 15.0
-                        },
-                        new
-                        {
-                            IdServicio = 17,
-                            Nombre = "DISEÑO",
-                            Precio = 500.0
-                        },
-                        new
-                        {
-                            IdServicio = 18,
                             Nombre = "SERVICIO EXPRESS",
                             Precio = 0.0
                         },
                         new
                         {
-                            IdServicio = 19,
+                            IdServicio = 2,
                             Nombre = "DISEÑO Y EDICIÓN",
                             Precio = 0.0
                         });
