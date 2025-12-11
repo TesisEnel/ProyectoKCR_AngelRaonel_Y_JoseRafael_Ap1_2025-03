@@ -1,4 +1,6 @@
-﻿@* @page "/registro-servicio"
+﻿@attribute [Authorize(Roles = "Administrador")]
+
+@page "/registro-servicio"
 @page "/modificar-servicio/{IdServicio:int}"
 @layout MainLayout
 @rendermode InteractiveServer
@@ -165,4 +167,4 @@
 
         public bool Activo { get; set; } = true;
     }
-} *@
+}
