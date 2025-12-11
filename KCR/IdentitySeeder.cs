@@ -39,7 +39,7 @@ public static class IdentitySeeder
             passwordEmpleados,
             EmpleadoExpressRole,
             "Empleado Express",
-            "000-0000000-1",
+            "00000000001",
             "Operador Express"
         );
 
@@ -50,7 +50,7 @@ public static class IdentitySeeder
             passwordEmpleados,
             EmpleadoDERole,
             "Empleado DE",
-            "000-0000000-2",
+            "00000000002",
             "Operador DE"
         );
     }
@@ -79,7 +79,7 @@ public static class IdentitySeeder
                 Email = adminEmail,
                 EmailConfirmed = true,
                 Nombre = "Administrador Principal",
-                Cedula = "000-0000000-0",
+                Cedula = "00000000000",
                 Cargo = "Administrador General"
             };
 

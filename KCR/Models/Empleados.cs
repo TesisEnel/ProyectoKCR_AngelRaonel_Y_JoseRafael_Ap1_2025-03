@@ -16,10 +16,9 @@ public class Empleados
 
     [Required, MaxLength(255)]
     public string Clave { get; set; }
-
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "La Cédula debe tener 11 dígitos.")]
-    [RegularExpression(@"^\d{11}$", ErrorMessage = "Solo se permiten 11 dígitos numéricos.")]
-    public string? Cedula { get; set; }
+    [StringLength(13, MinimumLength = 13, ErrorMessage = "La Cédula debe tener 13 caracteres (incluyendo guiones).")]
+    [RegularExpression(@"^\d{3}-\d{7}-\d{1}$", ErrorMessage = "El formato debe ser 000-0000000-0")]
+    public string Cedula { get; set; }
     [Required(ErrorMessage = "El cargo es obligatorio.")]
     [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.-]+$", ErrorMessage = "El cargo solo puede contener letras y espacios.")]
     public string? Cargo { get; set; }
